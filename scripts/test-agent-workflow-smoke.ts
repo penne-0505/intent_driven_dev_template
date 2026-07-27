@@ -1,6 +1,19 @@
 // Lightweight smoke checks for agent workflow activation surfaces.
 
-const read = (path: string): Promise<string> => Deno.readTextFile(path);
+// 未初期化 template では利用者向けファイルが starter/ に畳まれている。展開後は
+// root へ戻るため、どちらの状態でも同じ検査が成立するよう実在するほうを読む。
+// starter/ を先に見るのは、未初期化 template の root には利用者向け AGENTS.md では
+// なく router が置かれているため。root を先に読むと router を検査してしまう。
+const shipped = async (path: string): Promise<string> => {
+  try {
+    return await Deno.readTextFile(`starter/${path}`);
+  } catch (err) {
+    if (!(err instanceof Deno.errors.NotFound)) throw err;
+    return await Deno.readTextFile(path);
+  }
+};
+
+const read = (path: string): Promise<string> => shipped(path);
 
 const assert = (condition: unknown, message: string): void => {
   if (!condition) {

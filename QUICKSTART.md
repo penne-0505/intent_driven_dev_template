@@ -2,6 +2,32 @@
 
 このテンプレートは、人間と Codex / Claude Code / 汎用 coding agent が `TODO.md` と `_docs/` を読みながら開発を進めるための土台です。最初のセットアップでは、プロジェクト固有情報に置き換えることと、agent が迷わない入口を残すことを優先してください。
 
+## 0. 初期化
+
+このリポジトリには `starter/` があります。これは**まだ初期化されていない**印です。
+
+利用者向けの `AGENTS.md` / `CLAUDE.md` / `TODO.md` と agent 設定（`.claude/` / `.agents/` / `.codex/`）は `starter/` に畳まれています。これは、テンプレート自身を開発するときに、これらの規約が誤って開発者向けの指示として読まれ、テンプレートの改良履歴が出荷物へ混入するのを防ぐためです。展開するまで hook も skill も有効になりません。
+
+最初に一度だけ、`starter/` の中身を repository root へ移動してください。dotfile を取りこぼしやすいので、まとめて移動します。
+
+```bash
+find starter -mindepth 1 -maxdepth 1 -exec mv -f {} . \; && rmdir starter
+```
+
+展開すると次の状態になります。
+
+- root の `AGENTS.md` は router から利用者向けの規約へ置き換わる。
+- `TODO.md` と agent 設定が root に現れ、hook と skill が有効になる。
+- `starter/` ディレクトリは消える。
+
+以降の節は、この展開が済んでいることを前提にしています。展開後、次が通ることを確認してください。
+
+```bash
+./scripts/check-docs.sh
+```
+
+このファイルと `README.md` は root に残り、展開の前後で内容は変わりません。
+
 ## 1. 最初に読むファイル
 
 - [AGENTS.md](AGENTS.md)
@@ -35,10 +61,10 @@ hook は docs を自動更新しません。
 
 - `SessionStart`: docs-driven workflow context を再注入します。
 - `UserPromptSubmit`: 現在の仮説を既知の証拠・反証候補と照合し、Goal / Scope / Non-Goals / Intent を再確認する短い context を毎プロンプト注入します。
-- `PreToolUse`: 書き込み前に、根本原因、呼び出し元やデータフローなどの非局所影響、短期パッチと恒久策、互換性維持期間と根拠を確認します。`rm` / `git rm` / file deletion / sensitive file 操作は止めます。
-- `Stop`: relevant change の完了時に、`qa-review` / `docs-cleanup` / `check-docs` の証跡と、反証・全体影響・長期保守性・残リスクのうち複数観点からの自己監査を確認します。
+- `PreToolUse`: 書き込み前に、根本原因、呼び出し元やデータフローなどの非局所影響、短期パッチと恒久策、互換性維持期間と根拠を確認します。書き込み対象が CI 設定・`_docs/standards/`・agent 設定・workflow script などの workflow-sensitive path の場合は、Risk High 相当で Intent / Plan / QA / verification が前提になり得ることを実装前に伝えます。`rm` / `git rm` / file deletion / sensitive file 操作は止めます。
+- `Stop`: relevant change の完了時に、`qa-review` / `docs-cleanup` / `check-docs` の証跡と、反証・全体影響・長期保守性・残リスクのうち複数観点からの自己監査を確認します。workflow-sensitive な変更に `_docs/intent/` / `_docs/qa/` の変更が伴わない場合は、完了報告の文面に関わらず closure を求めます。
 
-自己監査は合意済み Scope を拡張する権限ではありません。広い変更が必要なら、実装へ混ぜず提案として切り分けます。また hook は guardrail であり、テスト、QA evidence、verification の代替にはなりません。ターン数カウンターは持たないため、session 再開・compact・並行実行でも同じ event 契約で動作します。
+hook は Risk を自動確定しません。文書要件が適用され得ることを知らせるだけで、分類の判断は作業者と agent に残ります。自己監査は合意済み Scope を拡張する権限ではありません。広い変更が必要なら、実装へ混ぜず提案として切り分けます。また hook は guardrail であり、テスト、QA evidence、verification の代替にはなりません。ターン数カウンターは持たないため、session 再開・compact・並行実行でも同じ event 契約で動作します。
 
 初回利用時は各 agent の `/hooks` で内容を確認し、信頼してください。不要な場合は、hook 設定を無効化または削除してから使います。
 

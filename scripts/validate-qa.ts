@@ -53,7 +53,15 @@ type EffectiveQaMatchParams = {
 
 type Verdict = "PASS" | "PARTIAL" | "FAIL" | "BLOCKED";
 
-const TODO_FILE = "TODO.md";
+// 未初期化 template では TODO.md が starter/ 側にあり root に無い。
+// env 未設定なら展開後の既定 (root) を保つ。読み取り権限が無い場合も既定へ倒す。
+const TODO_FILE = (() => {
+  try {
+    return Deno.env.get("DD_TODO_FILE")?.trim() || "TODO.md";
+  } catch {
+    return "TODO.md";
+  }
+})();
 const QA_SCHEMA = 2;
 const RISKS = ["Low", "Medium", "High", "Critical"] as const;
 const QA_STATUS_VALUES = [

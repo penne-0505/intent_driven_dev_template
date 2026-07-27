@@ -21,6 +21,7 @@ jobs:
           globs: |
             _docs/**/*.md
             _evals/**/*.md
+            starter/**/*.md
             README.md
             AGENTS.md
             TODO.md
@@ -36,3 +37,41 @@ jobs:
 
       - name: Run documentation validators
         run: ./scripts/check-docs.sh
+
+  # 出荷物の妥当性は、未初期化の repository ではなく展開後の姿でしか判定できない。
+  # starter/ を展開した複製で同じ validator を通し、利用者の初期状態を直接検証する。
+  starter-expansion:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Expand starter/ into a scratch copy
+        run: |
+          set -euo pipefail
+          rsync -a --exclude '.git' ./ ../expanded/
+          cd ../expanded
+          find starter -mindepth 1 -maxdepth 1 -exec mv -f {} . \;
+          rmdir starter
+          test ! -e starter
+          test -f TODO.md
+          test -f .claude/settings.json
+
+      - name: Validate the expanded project
+        working-directory: ../expanded
+        run: |
+          set -euo pipefail
+          # scope.ts は git repository を前提にした検査を含むため、複製を repo 化する
+          git init -q .
+          git config user.email ci@example.invalid
+          git config user.name ci
+          git add -A
+          git commit -qm "expanded starter"
+          ./scripts/check-docs.sh

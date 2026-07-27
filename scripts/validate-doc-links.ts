@@ -46,6 +46,7 @@ const ROOT_RELATIVE_FILES = [
   "LICENSE.txt",
 ] as const;
 const FIXTURE_ROOT = "_evals/validator-fixtures/";
+const STARTER_ROOT = "starter/";
 
 const normalizePath = (path: string): string => {
   const segments: string[] = [];
@@ -354,8 +355,16 @@ const validateLocalTarget = async (
   anchorCache: Map<string, Set<string>>,
 ): Promise<void> => {
   if (isTemplatePlaceholder(target)) return;
-  const resolved = resolveTarget(fromFile, target);
-  if (!resolved) return;
+  const initial = resolveTarget(fromFile, target);
+  if (!initial) return;
+  // 未初期化 template では、利用者向けファイルが starter/ に畳まれている。
+  // README / QUICKSTART のリンクは展開後の layout を指すのが正しいため、
+  // root で見つからない場合だけ starter/ を同一 target として許容する。
+  const resolved = await exists(initial)
+    ? initial
+    : await exists(`${STARTER_ROOT}${initial}`)
+    ? `${STARTER_ROOT}${initial}`
+    : initial;
   if (!await exists(resolved)) {
     errors.push({
       file: fromFile,
@@ -583,13 +592,15 @@ const run = async (): Promise<void> => {
       errors.push({ file, message: error });
       continue;
     }
-    if (attrs && "references" in attrs) {
+    // validator fixture は references に故意の不正値を持つため、fixture では
+    // references 検査ごとスキップする。しないと fixture 自身で check-docs が落ちる。
+    if (attrs && "references" in attrs && !isValidatorFixture(file)) {
       if (!Array.isArray(attrs.references)) {
         errors.push({
           file,
           message: "front matter references must be an array",
         });
-      } else if (!isValidatorFixture(file)) {
+      } else {
         for (const ref of attrs.references) {
           if (typeof ref !== "string") {
             errors.push({
