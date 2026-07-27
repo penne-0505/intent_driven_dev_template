@@ -65,6 +65,13 @@ const WRITE_AUDIT_CONTEXT = [
   "Record externally verifiable decisions, tests, and residual risks rather than private chain-of-thought.",
 ].join("\n");
 
+// intent: DEC-004 (Workflow/lifecycle-self-audit) — Surface the document requirement while the implementation approach can still change, instead of discovering it at Stop.
+const WORKFLOW_RISK_NOTICE = [
+  "This target is workflow-sensitive (CI, standards, agent config, or workflow scripts).",
+  "_docs/standards/quality_assurance.md can classify such a change as Risk High, which expects Intent, Plan, QA test-plan, and verification to exist before or during implementation, not after it.",
+  "Judge the actual Risk yourself: this notice only reports that the requirement may apply, and never settles the classification for you.",
+].join("\n");
+
 const CLOSURE_TERMS_RE =
   /check-docs|validate-|docs-inventory|qa-review|docs-cleanup|post-implementation|verification|verdict|residual risk|未検証|検証|残リスク|実行できなかった|deferred/i;
 
@@ -117,6 +124,38 @@ const pathFromToolInput = (toolInput: ToolInput | null | undefined): string => {
   return normalizePath(
     toolInput.file_path ?? toolInput.path ?? toolInput.target_file ?? "",
   );
+};
+
+const PATCH_TARGET_RE = /^\*\*\*\s+(?:Add|Update|Delete) File:\s*(.+)$/gm;
+
+// intent: DEC-004 (Workflow/lifecycle-self-audit) — apply_patch carries its targets in the command, so path-aware audit must read both shapes to behave the same for Codex and Claude Code.
+const writeTargets = (
+  toolInput: ToolInput | null | undefined,
+  command: string,
+): string[] => {
+  const targets = [pathFromToolInput(toolInput)];
+  for (const match of command.matchAll(PATCH_TARGET_RE)) {
+    targets.push(normalizePath(match[1].trim()));
+  }
+  return unique(targets);
+};
+
+// intent: DEC-004 (Workflow/lifecycle-self-audit) — Single source for the workflow-sensitive path set, shared by write-time and completion-time audits.
+export const isWorkflowSensitivePath = (path: unknown): boolean => {
+  const normalized = normalizePath(path);
+  return normalized === "AGENTS.md" ||
+    normalized === "CLAUDE.md" ||
+    normalized.startsWith(".codex/") ||
+    normalized === ".claude/settings.json" ||
+    normalized.startsWith(".agents/skills/") ||
+    normalized.startsWith(".claude/skills/") ||
+    normalized.startsWith(".github/workflows/") ||
+    normalized.startsWith("_docs/standards/") ||
+    normalized.startsWith("scripts/validate-") ||
+    normalized === "scripts/check-docs.sh" ||
+    normalized === "scripts/scope.ts" ||
+    normalized === "scripts/agent-workflow-hook.ts" ||
+    normalized === "scripts/test-agent-workflow-smoke.ts";
 };
 
 const commandFromToolInput = (
@@ -207,7 +246,15 @@ export const analyzePreToolUse = (
           "Edits to sensitive credential-like files are blocked. Use .env.example or a documented non-secret placeholder instead.",
       };
     }
-    return { decision: "context", context: WRITE_AUDIT_CONTEXT };
+    const workflowSensitive = writeTargets(toolInput, command).some(
+      isWorkflowSensitivePath,
+    );
+    return {
+      decision: "context",
+      context: workflowSensitive
+        ? `${WRITE_AUDIT_CONTEXT}\n${WORKFLOW_RISK_NOTICE}`
+        : WRITE_AUDIT_CONTEXT,
+    };
   }
 
   return null;
@@ -229,6 +276,7 @@ type StopPathGroups = {
   archive: string[];
   temporaryDocs: string[];
   qaDocs: string[];
+  intentDocs: string[];
 };
 
 const relevantStopPaths = (paths: string[]): StopPathGroups => {
@@ -244,26 +292,13 @@ const relevantStopPaths = (paths: string[]): StopPathGroups => {
         "CLAUDE.md",
       ].includes(path)
     ),
-    workflow: normalized.filter((path) =>
-      path === "AGENTS.md" ||
-      path === "CLAUDE.md" ||
-      path.startsWith(".codex/") ||
-      path === ".claude/settings.json" ||
-      path.startsWith(".agents/skills/") ||
-      path.startsWith(".claude/skills/") ||
-      path.startsWith(".github/workflows/") ||
-      path.startsWith("_docs/standards/") ||
-      path.startsWith("scripts/validate-") ||
-      path === "scripts/check-docs.sh" ||
-      path === "scripts/scope.ts" ||
-      path === "scripts/agent-workflow-hook.ts" ||
-      path === "scripts/test-agent-workflow-smoke.ts"
-    ),
+    workflow: normalized.filter(isWorkflowSensitivePath),
     archive: normalized.filter((path) => path.startsWith("_docs/archives/")),
     temporaryDocs: normalized.filter((path) =>
       /^_docs\/(draft|plan|survey)\//.test(path)
     ),
     qaDocs: normalized.filter((path) => path.startsWith("_docs/qa/")),
+    intentDocs: normalized.filter((path) => path.startsWith("_docs/intent/")),
   };
 };
 
@@ -314,10 +349,22 @@ export const analyzeStop = (
   if (!looksLikeCompletion(lastMessage)) return null;
   const hasVerificationEvidence = hasClosureEvidence(lastMessage);
   const hasIndependentAuditEvidence = auditEvidenceCount(lastMessage) >= 2;
-  if (hasVerificationEvidence && hasIndependentAuditEvidence) return null;
+  // intent: DEC-005 (Workflow/lifecycle-self-audit) — Keyword matching on the final message can be satisfied by wording alone, so a working-tree fact is required as well.
+  const workflowChangeLacksDocs = grouped.workflow.length > 0 &&
+    grouped.intentDocs.length === 0 &&
+    grouped.qaDocs.length === 0;
+  if (
+    hasVerificationEvidence && hasIndependentAuditEvidence &&
+    !workflowChangeLacksDocs
+  ) {
+    return null;
+  }
 
   const sections = [
     listSome("Changed workflow-sensitive files", grouped.workflow),
+    workflowChangeLacksDocs
+      ? "No change under _docs/intent/ or _docs/qa/ accompanies these workflow-sensitive files, so the Risk High document chain is currently unsatisfied in the working tree."
+      : null,
     listSome("Changed documentation files", grouped.docs),
     listSome("Changed TODO files", grouped.todo),
   ].filter(Boolean).join("\n\n");
@@ -327,6 +374,12 @@ export const analyzeStop = (
     "- If TODO.md or _docs changed, run ./scripts/check-docs.sh or state why it cannot run.",
     "- If the request is current-state triage, handoff discovery, or documentation health review, use docs-inventory before cleanup.",
     "- If the task is Size >= M or Risk >= Medium, use qa-review and record verification before completion.",
+    // intent: DEC-006 (Workflow/lifecycle-self-audit) — Risk High needs the whole document chain, not verification alone.
+    ...(grouped.workflow.length > 0
+      ? [
+        "- Workflow-sensitive paths such as .github/workflows/ or _docs/standards/ can be Risk High in _docs/standards/quality_assurance.md, which requires Intent, Plan, QA test-plan, and verification together; create the missing ones or state why the change is not Risk High.",
+      ]
+      : []),
     "- If draft/plan/survey cleanup or archives are involved, use docs-cleanup. Do not archive intent or QA docs.",
     "- Re-audit the result from at least two explicit perspectives: counterevidence or alternatives, non-local system effects, long-term maintainability or compatibility, and residual risks or trade-offs.",
     "- Keep the audit within the agreed Goal / Scope / Non-Goals. Propose broader work instead of silently expanding scope.",

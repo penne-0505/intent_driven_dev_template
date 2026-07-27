@@ -1,6 +1,6 @@
 // Deno validator self-test runner: exercises valid and intentionally invalid fixtures.
 
-type ValidatorKind = "todo" | "intent" | "qa";
+type ValidatorKind = "todo" | "intent" | "qa" | "frontmatter";
 
 type TestCaseParams = {
   kind: ValidatorKind;
@@ -47,6 +47,17 @@ const QA_INVALID = [
   "_evals/validator-fixtures/qa/invalid/verification-missing-test-plan-reference.md",
   "_evals/validator-fixtures/qa/invalid/qa-archive-path.md",
 ] as const;
+const FRONTMATTER_VALID = [
+  "_evals/validator-fixtures/frontmatter/valid/intent-schema.md",
+  "_evals/validator-fixtures/frontmatter/valid/qa-schema.md",
+] as const;
+const FRONTMATTER_INVALID = [
+  "_evals/validator-fixtures/frontmatter/invalid/duplicate-field.md",
+  "_evals/validator-fixtures/frontmatter/invalid/unknown-field.md",
+  "_evals/validator-fixtures/frontmatter/invalid/wrong-type.md",
+  "_evals/validator-fixtures/frontmatter/invalid/intent-schema-on-qa.md",
+  "_evals/validator-fixtures/frontmatter/invalid/qa-schema-on-intent.md",
+] as const;
 
 const deno = Deno.execPath();
 
@@ -65,6 +76,15 @@ const runCommand = async (args: string[]): Promise<CommandResult> => {
 };
 
 const validatorArgs = (kind: ValidatorKind, target: string): string[] => {
+  if (kind === "frontmatter") {
+    return [
+      "run",
+      "--allow-read",
+      "scripts/validate-frontmatter.ts",
+      "--fixture",
+      target,
+    ];
+  }
   if (kind === "todo") {
     return ["run", "--allow-read", "scripts/validate-todo.ts", target];
   }
@@ -384,6 +404,12 @@ for (const target of QA_VALID) {
 }
 for (const target of QA_INVALID) {
   ok = await testCase({ kind: "qa", target, shouldPass: false }) && ok;
+}
+for (const target of FRONTMATTER_VALID) {
+  ok = await testCase({ kind: "frontmatter", target, shouldPass: true }) && ok;
+}
+for (const target of FRONTMATTER_INVALID) {
+  ok = await testCase({ kind: "frontmatter", target, shouldPass: false }) && ok;
 }
 
 // 対象外パスのみを scope に置くと、invalid fixture は判定されずに pass する。

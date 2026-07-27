@@ -3,6 +3,7 @@ import {
   analyzeStop,
   analyzeUserPromptSubmit,
   auditEvidenceCount,
+  isWorkflowSensitivePath,
   parsePorcelainPaths,
 } from "./agent-workflow-hook.ts";
 
@@ -51,6 +52,55 @@ assert(
     tool_input: { file_path: "README.md" },
   }) === null,
   "INV-002 avoid write audit noise on read-only tools",
+);
+
+const workflowWriteAudit = analyzePreToolUse({
+  tool_name: "Write",
+  tool_input: { file_path: ".github/workflows/docs-ci.yml" },
+});
+assert(
+  workflowWriteAudit?.decision === "context" &&
+    workflowWriteAudit.context.includes("workflow-sensitive") &&
+    workflowWriteAudit.context.includes("Risk High") &&
+    workflowWriteAudit.context.includes("quality_assurance.md") &&
+    workflowWriteAudit.context.includes("root cause") &&
+    workflowWriteAudit.context.includes("silently expanding scope"),
+  "AC-005 INV-006 warn about the Risk High document chain before workflow-sensitive writes",
+);
+
+assert(
+  workflowWriteAudit?.decision === "context" &&
+    workflowWriteAudit.context.includes("Judge the actual Risk yourself") &&
+    workflowWriteAudit.context.includes("never settles the classification"),
+  "AC-005 INV-006 write-time notice reports the requirement without settling Risk",
+);
+
+assert(
+  writeAudit?.decision === "context" &&
+    !writeAudit.context.includes("workflow-sensitive"),
+  "AC-005 INV-006 keep ordinary source writes free of the workflow-sensitive notice",
+);
+
+const patchWorkflowAudit = analyzePreToolUse({
+  tool_name: "apply_patch",
+  tool_input: {
+    command:
+      "*** Begin Patch\n*** Update File: _docs/standards/quality_assurance.md\n",
+  },
+});
+assert(
+  patchWorkflowAudit?.decision === "context" &&
+    patchWorkflowAudit.context.includes("workflow-sensitive"),
+  "AC-005 INV-004 detect workflow-sensitive apply_patch targets like Codex uses",
+);
+
+assert(
+  isWorkflowSensitivePath("AGENTS.md") &&
+    isWorkflowSensitivePath("./_docs/standards/quality_assurance.md") &&
+    isWorkflowSensitivePath(".claude/settings.json") &&
+    !isWorkflowSensitivePath("README.md") &&
+    !isWorkflowSensitivePath("_docs/qa/Workflow/x/test-plan.md"),
+  "AC-005 single workflow-sensitive predicate is shared by write and stop audits",
 );
 
 assert(
@@ -117,6 +167,63 @@ assert(
 assert(
   auditEvidenceCount("反証を確認し、影響範囲と長期保守性を監査した。") === 3,
   "INV-003 count distinct audit perspectives",
+);
+
+const fullyWordedClosure =
+  "対応しました。qa-reviewと検証はPASSです。反証候補を確認し、影響範囲と長期保守性を再監査しました。残リスクはありません。";
+
+const workflowWithoutDocs = analyzeStop({
+  dirtyPaths: [".github/workflows/docs-ci.yml", "AGENTS.md"],
+  input: { last_assistant_message: fullyWordedClosure },
+});
+assert(
+  workflowWithoutDocs?.decision === "block" &&
+    workflowWithoutDocs.reason.includes("_docs/intent/") &&
+    workflowWithoutDocs.reason.includes("_docs/qa/") &&
+    workflowWithoutDocs.reason.includes(".github/workflows/docs-ci.yml"),
+  "AC-006 INV-007 stop hook requires closure from working-tree facts, not wording alone",
+);
+
+assert(
+  analyzeStop({
+    dirtyPaths: [
+      ".github/workflows/docs-ci.yml",
+      "_docs/qa/Workflow/x/verification.md",
+    ],
+    input: { last_assistant_message: fullyWordedClosure },
+  }) === null,
+  "AC-006 INV-007 accompanying QA docs satisfy the working-tree evidence condition",
+);
+
+assert(
+  analyzeStop({
+    dirtyPaths: [
+      "_docs/standards/quality_assurance.md",
+      "_docs/intent/Workflow/x/decision.md",
+    ],
+    input: { last_assistant_message: fullyWordedClosure },
+  }) === null,
+  "AC-006 INV-007 accompanying intent docs satisfy the working-tree evidence condition",
+);
+
+assert(
+  workflowWithoutDocs?.decision === "block" &&
+    workflowWithoutDocs.reason.includes("Risk High") &&
+    workflowWithoutDocs.reason.includes("Plan") &&
+    workflowWithoutDocs.reason.includes("QA test-plan") &&
+    workflowWithoutDocs.reason.includes("verification"),
+  "AC-007 stop message spells out the Risk High document chain for workflow-sensitive paths",
+);
+
+const todoOnlyBlock = analyzeStop({
+  dirtyPaths: ["TODO.md"],
+  input: { last_assistant_message: "対応しました。" },
+});
+assert(
+  todoOnlyBlock?.decision === "block" &&
+    !todoOnlyBlock.reason.includes("Risk High") &&
+    !todoOnlyBlock.reason.includes("No change under _docs/intent/"),
+  "AC-007 keep the Risk High chain out of non workflow-sensitive closures",
 );
 
 assert(
