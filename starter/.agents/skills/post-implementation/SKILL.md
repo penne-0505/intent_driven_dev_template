@@ -39,9 +39,11 @@ you stop and think "why is it like this"?** Verbalize that "why" in 1-3 lines.
 - If nothing emerges, write `None: <why this session produced no new principle>`
   explicitly. Never leave the reflection blank and never write a bare `None` —
   an explicit reason distinguishes "considered, nothing found" from "skipped".
-- Record location: the `Transferable Principles` section of
-  `_docs/qa/<Area>/<slug>/verification.md` when it exists (`qa_schema: 3`
-  requires it); otherwise include the candidate or reasoned `None` in the final
+- Record location: `_docs/qa/<Area>/<slug>/verification.md` whenever that file
+  exists. If it is still `qa_schema: 2`, upgrade it to `qa_schema: 3` and add
+  the missing sections as part of appending the new round — a legacy schema is
+  never a reason to fall back to the summary. Only when no verification exists
+  (true Fast Track) record the candidate or reasoned `None` in the final
   summary / PR description.
 - Promotion target: feature-bound learnings go to that feature's intent;
   cross-cutting principles go to `_docs/intent/<Area>/conventions/decision.md`.

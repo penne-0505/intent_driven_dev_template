@@ -37,6 +37,7 @@
 - [historical-prompt-not-operational](cases/historical-prompt-not-operational.md)
 - [rationale-preserving-change](cases/rationale-preserving-change.md)
 - [transferable-principle-skip](cases/transferable-principle-skip.md)
+- [legacy-verification-append](cases/legacy-verification-append.md)
 - [misleading-optimization](cases/misleading-optimization.md)
 - [experimental-baseline](cases/experimental-baseline.md)
 - [template-version-migration](cases/template-version-migration.md)
