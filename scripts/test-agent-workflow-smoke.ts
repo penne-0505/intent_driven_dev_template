@@ -58,7 +58,14 @@ const templateLockExample = await json("docs-template.lock.example.json") as {
 };
 const intentTemplate = await read("_docs/standards/templates/intent.md");
 const qaTemplate = await read("_docs/standards/templates/qa-test-plan.md");
+const qaVerificationTemplate = await read(
+  "_docs/standards/templates/qa-verification.md",
+);
 const qualityStandard = await read("_docs/standards/quality_assurance.md");
+const agentsPostImplementation = await read(
+  ".agents/skills/post-implementation/SKILL.md",
+);
+const agentsQaReview = await read(".agents/skills/qa-review/SKILL.md");
 const whyFirstSkills = [
   "implementation-prep",
   "docs-prep",
@@ -234,12 +241,33 @@ assert(
 assert(
   contains(
     qaTemplate,
-    "qa_schema: 2",
+    "qa_schema: 3",
     "## Decision Review Scope",
     "## Intent-derived Invariants",
     "None",
   ),
   "QA template reviews DEC records and permits zero invariants",
+);
+
+assert(
+  contains(
+    qaVerificationTemplate,
+    "qa_schema: 3",
+    "## Transferable Principles",
+    "None:",
+  ),
+  "QA verification template carries the session-end reflection contract",
+);
+
+assert(
+  contains(
+    agentsPostImplementation,
+    "Session-End Reflection",
+    "Transferable Principles",
+    "None: <",
+  ) &&
+    contains(agentsQaReview, "Transferable Principles", "None: <reason>"),
+  "post-implementation and qa-review inline the transferable principle reflection",
 );
 
 assert(
