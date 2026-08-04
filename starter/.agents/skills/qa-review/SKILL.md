@@ -40,6 +40,10 @@ This skill determines whether implementation can be considered complete.
 - Confirm each applicable intent-derived invariant is preserved; `None` is a valid invariant set.
 - New verification documents use `qa_schema: 3` and include Decision Conformance
   and Transferable Principles.
+- Appending a new verification round to a legacy `qa_schema: 2` document
+  upgrades it to `qa_schema: 3` in the same edit and adds the missing sections.
+  Link or typo fixes may stay legacy. A legacy schema is never a reason to skip
+  or relocate the Transferable Principles reflection.
 - "The fix matches an existing pattern" does not justify skipping the
   Transferable Principles reflection; a bare `None` is not acceptable evidence.
 - Candidates are presented for user review. Do not promote a candidate to intent

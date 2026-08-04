@@ -158,7 +158,12 @@ intent へ昇格することは、agent の内発的な動機では前者しか�
 - 無い場合は `None: <理由>` を明示する。空欄と裸の `None` を残さない。理由付きの None は
   「検討したが無かった」の証跡であり、無言の skip と構造的に区別できる。
 - 記録先は `_docs/qa/<Area>/<slug>/verification.md` の `Transferable Principles` section
-  (`qa_schema: 3` で必須)。verification を作らない Fast Track では final summary / PR に残す。
+  (`qa_schema: 3` で必須)。verification が legacy (`qa_schema: 2`) の場合は、新しい検証 round を
+  append する編集の中で `qa_schema: 3` へ移行し、不足 section を追加する。リンクや typo の修正
+  だけなら legacy のままでよい。legacy schema は reflection を summary へ逃がす理由にならない。
+- final summary / PR への記録は、verification を作らない Fast Track に限る。既存 verification が
+  ある限り、記録先は常に verification である (summary は session とともに揮発し、恒久記録に
+  ならない)。
 - validator は presence (candidate または理由付き None) だけを検証する。内容の質は user review
   で判断する。品質を機械強制すると compliance 的な形骸化を生む (intent ↔ code traceability の
   強制レベルと同じ理由)。
