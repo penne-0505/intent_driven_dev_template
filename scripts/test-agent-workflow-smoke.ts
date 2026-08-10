@@ -183,10 +183,10 @@ assert(
   templateLockExample.schema === 1 &&
     templateLockExample.source ===
       "https://github.com/penne-0505/docs_driven_dev_template.git" &&
-    templateLockExample.revision?.tag === "v1.3.1" &&
+    templateLockExample.revision?.tag === "v1.4.0" &&
     templateLockExample.revision?.commit ===
       "REPLACE_WITH_THE_TAGS_FULL_40_CHARACTER_COMMIT_SHA",
-  "template lock example identifies the v1.3.1 release and full-SHA placeholder",
+  "template lock example identifies the v1.4.0 release and full-SHA placeholder",
 );
 
 assert(
