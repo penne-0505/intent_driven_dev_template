@@ -193,7 +193,7 @@ draft でのみ、stale 管理のために以下の任意フィールドを追�
 
 ### 整合性チェック & 自動化
 
-- CI では markdownlint、front-matter/stale チェック、TODO チェック、ローカルリンクチェック、QA チェック、validator fixture、agent workflow smoke check を実行する。
+- CI では front-matter/stale チェック、TODO チェック、ローカルリンクチェック、QA チェック、validator fixture、agent workflow smoke check を実行する。
 - ローカル検証の正典は `./scripts/check-docs.sh` とする。
 - 個別に切り分ける場合のコマンド:
 

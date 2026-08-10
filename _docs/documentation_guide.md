@@ -189,11 +189,7 @@ deno run --allow-read scripts/test-agent-workflow-smoke.ts
 ./scripts/check-docs.sh
 ```
 
-手元で Node.js / npx が使える場合は、markdownlint も実行できます。
-
-```bash
-npx markdownlint-cli2 "_docs/**/*.md" "_evals/**/*.md" "README.md" "AGENTS.md" "TODO.md" "QUICKSTART.md" "!_docs/archives/**/*" "!_docs/standards/templates/**/*" --config .markdownlint.jsonc
-```
+`check-docs.sh` は Deno validator を通します。Deno があれば十分で、CI も同一 script を通します。
 
 ## トラブルシューティング
 

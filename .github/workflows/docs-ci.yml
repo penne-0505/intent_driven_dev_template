@@ -15,21 +15,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Markdownlint
-        uses: DavidAnson/markdownlint-cli2-action@v16
-        with:
-          globs: |
-            _docs/**/*.md
-            _evals/**/*.md
-            starter/**/*.md
-            README.md
-            AGENTS.md
-            TODO.md
-            QUICKSTART.md
-            !_docs/archives/**/*
-            !_docs/standards/templates/**/*
-          config: .markdownlint.jsonc
-
       - name: Setup Deno
         uses: denoland/setup-deno@v2
         with:
