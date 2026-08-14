@@ -76,17 +76,17 @@ const hookEvents = (config: HookConfig): string[] =>
   Object.keys(config.hooks ?? {});
 
 assert(
-  ["SessionStart", "UserPromptSubmit", "PreToolUse", "Stop"].every((event) =>
+  ["SessionStart", "PreToolUse", "Stop"].every((event) =>
     hookEvents(codexHooks).includes(event)
-  ),
-  "Codex hooks include SessionStart, UserPromptSubmit, PreToolUse, and Stop",
+  ) && !hookEvents(codexHooks).includes("UserPromptSubmit"),
+  "Codex hooks include SessionStart, PreToolUse, Stop and drop the per-prompt injection",
 );
 
 assert(
-  ["SessionStart", "UserPromptSubmit", "PreToolUse", "Stop"].every((event) =>
+  ["SessionStart", "PreToolUse", "Stop"].every((event) =>
     hookEvents(claudeSettings).includes(event)
-  ),
-  "Claude hooks include SessionStart, UserPromptSubmit, PreToolUse, and Stop",
+  ) && !hookEvents(claudeSettings).includes("UserPromptSubmit"),
+  "Claude hooks include SessionStart, PreToolUse, Stop and drop the per-prompt injection",
 );
 
 assert(
@@ -113,12 +113,11 @@ assert(
 assert(
   contains(
     agentHook,
-    "plausible counterevidence",
-    "non-local effects",
-    "long-term maintainability",
-    "silently expanding scope",
-  ),
-  "AC-001 AC-002 self-audit covers evidence, system impact, durability, and scope",
+    "無視して",
+    "作業を始めないでください",
+    "本筋の次の指示",
+  ) && !contains(agentHook, "counterevidence"),
+  "stop reminder is ignorable, defers work, and drops keyword-compliance audits",
 );
 
 assert(
