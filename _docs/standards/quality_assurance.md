@@ -255,4 +255,4 @@ _docs/qa/<Area>/<slug>/verification.md
 
 - Root-level Markdown files are treated as active project guidance.
 - One-off implementation prompts must not be left at repository root.
-- If retained, move them under `_evals/prompts/` or another clearly historical location and mark them as non-operational.
+- If retained, move them under `_meta/prompts/` or another clearly historical location and mark them as non-operational.

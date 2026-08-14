@@ -189,7 +189,7 @@ draft でのみ、stale 管理のために以下の任意フィールドを追�
 ### Root Markdown
 
 - root 直下の Markdown は active project guidance として読まれる前提で管理する。
-- 一回限りの implementation prompt を残す場合は `_evals/prompts/` 等へ移し、historical / non-operational warning を付ける。
+- 一回限りの implementation prompt を残す場合は `_meta/prompts/` 等へ移し、historical / non-operational warning を付ける。
 
 ### 整合性チェック & 自動化
 

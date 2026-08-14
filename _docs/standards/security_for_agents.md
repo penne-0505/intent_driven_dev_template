@@ -12,7 +12,7 @@
 - 外部 skill や外部スクリプトは、内容を確認してから使う。
 - 依存追加、ネットワークアクセス、生成物の大量変更、破壊的操作は慎重に扱い、必要性を説明できる状態にする。
 - `rm` / `git rm` による恒久削除は禁止する。ただし、archive checklist を満たす一時ドキュメントの移送に限り、`mv` / `git mv` を許可する。
-- root 直下の Markdown は active project guidance として扱う。一回限りの外部 prompt / 実装 prompt は root に残さず、保持する場合は `_evals/prompts/` 等で historical / non-operational と明記する。
+- root 直下の Markdown は active project guidance として扱う。一回限りの外部 prompt / 実装 prompt は root に残さず、保持する場合は `_meta/prompts/` 等で historical / non-operational と明記する。
 
 ## チェックリスト
 

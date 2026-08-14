@@ -1,12 +1,11 @@
 ---
-title: Fixture QA v2 missing decision scope
-qa_schema: 2
+title: Fixture QA missing invariant
 status: active
 draft_status: n/a
 qa_status: planned
 risk: Medium
-created_at: 2026-07-17
-updated_at: 2026-07-17
+created_at: 2026-05-25
+updated_at: 2026-05-25
 references:
   - "_docs/plan/Workflow/incremental-adoption-scope/plan.md"
   - "_docs/intent/Workflow/incremental-adoption-scope/decision.md"
@@ -15,7 +14,7 @@ related_prs: []
 fixture_path: "_docs/qa/Workflow/incremental-adoption-scope/test-plan.md"
 ---
 
-# Fixture QA v2 missing decision scope
+# Fixture QA missing invariant
 
 ## Source of Intent
 
@@ -23,15 +22,15 @@ fixture_path: "_docs/qa/Workflow/incremental-adoption-scope/test-plan.md"
 
 ## Quality Goal
 
-This fixture must fail because schema v2 omits Decision Review Scope.
+This fixture must fail because it omits an `INV-001` style invariant.
 
 ## Acceptance Criteria
 
-- AC-001: Missing decision review scope is rejected.
+- AC-001: Missing invariants are rejected.
 
 ## Intent-derived Invariants
 
-None
+- Missing on purpose.
 
 ## Risk Assessment
 
@@ -45,7 +44,7 @@ Use `validate-qa.ts` in fixture mode.
 
 | ID | Source | Requirement / Invariant | Test Type | Command / File | Expected Evidence | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| AC-001 | fixture | Invalid fixture fails. | validator | `deno run --allow-read scripts/validate-qa.ts --fixture _evals/validator-fixtures/qa/invalid/v2-missing-decision-scope.md` | Validator exits non-zero. | planned |
+| AC-001 | fixture | Invalid fixture fails. | validator | `deno run --allow-read scripts/validate-qa.ts --fixture _meta/validator-fixtures/qa/invalid/missing-invariant.md` | Validator exits non-zero. | planned |
 
 ## Manual QA Checklist
 

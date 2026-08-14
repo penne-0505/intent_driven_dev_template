@@ -130,7 +130,7 @@ references:
 
 - root 直下の Markdown は、coding agent に active project guidance として読まれる前提で管理する。
 - 一回限りの implementation prompt は root に残さない。
-- 履歴として残す場合は `_evals/prompts/` 等の明確に非運用の場所へ移し、ファイル先頭に historical / non-operational warning を付ける。
+- 履歴として残す場合は `_meta/prompts/` 等の明確に非運用の場所へ移し、ファイル先頭に historical / non-operational warning を付ける。
 - 現在の作業指示は `AGENTS.md`、`TODO.md`、`_docs/documentation_guide.md`、`_docs/standards/`、関連 Skills を参照する。
 
 ## TODO.md 完了処理
@@ -270,7 +270,7 @@ draft の stale 管理向け任意フィールド:
 ```json
 {
   "schema": 1,
-  "source": "https://github.com/penne-0505/docs_driven_dev_template.git",
+  "source": "https://github.com/penne-0505/intent_driven_dev_template.git",
   "revision": {
     "tag": "v1.2.0",
     "commit": "<tagが解決するfull 40-character commit SHA>"

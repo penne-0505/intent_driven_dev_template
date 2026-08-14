@@ -35,7 +35,7 @@ Codex / Claude Code 向けの lifecycle hook を同梱しています。hook は
 
 久しぶりの再開や handoff 探索では、`docs-inventory` skill が TODO、intent、QA、guide、reference、一時 docs の棚卸しを行います。これは read-only の診断であり、整理や archive 実行は `docs-cleanup` の役割です。
 
-root 直下の Markdown は agent 向けの active guidance として扱われます。一回限りの実装プロンプトを履歴として残す場合は `_evals/prompts/` などへ移し、非運用文書であることを明記してください。
+root 直下の Markdown は agent 向けの active guidance として扱われます。一回限りの実装プロンプトを履歴として残す場合は `_meta/prompts/` などへ移し、非運用文書であることを明記してください。
 
 ### カスタマイズ
 
@@ -92,7 +92,7 @@ Lifecycle hooks for Codex and Claude Code are included. They do not update docs 
 
 For project resumes or handoff discovery, the `docs-inventory` skill audits TODO, intent, QA, guide, reference, and temporary docs. It is a read-only diagnosis; cleanup and archive execution belong to `docs-cleanup`.
 
-Root-level Markdown is treated as active guidance for agents. If you keep a one-off implementation prompt for history, move it under `_evals/prompts/` or another historical location and mark it as non-operational.
+Root-level Markdown is treated as active guidance for agents. If you keep a one-off implementation prompt for history, move it under `_meta/prompts/` or another historical location and mark it as non-operational.
 
 ### Customization
 

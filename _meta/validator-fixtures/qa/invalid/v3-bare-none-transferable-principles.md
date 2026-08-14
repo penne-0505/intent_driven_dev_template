@@ -31,7 +31,7 @@ Verdict: PASS
 
 | Command / Test | Result | Notes |
 | --- | --- | --- |
-| `deno run --allow-read scripts/validate-qa.ts --fixture _evals/validator-fixtures/qa/invalid/v3-bare-none-transferable-principles.md` | FAIL | Bare None must be rejected. |
+| `deno run --allow-read scripts/validate-qa.ts --fixture _meta/validator-fixtures/qa/invalid/v3-bare-none-transferable-principles.md` | FAIL | Bare None must be rejected. |
 
 ## Automated Test Results
 

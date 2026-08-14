@@ -1,6 +1,5 @@
 ---
-title: Fixture QA verification pass
-qa_schema: 2
+title: Fixture QA status verdict mismatch
 status: active
 draft_status: n/a
 qa_status: verified
@@ -15,41 +14,37 @@ related_prs: []
 fixture_path: "_docs/qa/Workflow/incremental-adoption-scope/verification.md"
 ---
 
-# Fixture QA verification pass
+# Fixture QA status verdict mismatch
 
 ## Summary
 
-The fixture represents a passing verification record.
+This fixture must fail because `qa_status: verified` conflicts with `Verdict: FAIL`.
 
 ## Verification Verdict
 
-Verdict: PASS
+Verdict: FAIL
 
 ## Commands Run
 
 | Command / Test | Result | Notes |
 | --- | --- | --- |
-| `deno run --allow-read scripts/validate-qa.ts --fixture _evals/validator-fixtures/qa/valid` | PASS | Valid fixture directory exits 0. |
+| `deno run --allow-read scripts/validate-qa.ts --fixture _meta/validator-fixtures/qa/invalid/status-verdict-mismatch.md` | FAIL | The mismatch must be rejected. |
 
 ## Automated Test Results
 
-- AC-001: Validator accepted the valid fixture.
+- AC-001: Mismatch fixture is expected to fail.
 
 ## Manual QA Results
 
-- Historical prompt warning is not relevant to this fixture.
+- None
 
 ## Acceptance Criteria Coverage
 
-- AC-001: Covered by validator fixture execution.
-
-## Decision Conformance
-
-- DEC-001: The accepted fixture preserves the why-first QA structure.
+- AC-001: Covered by mismatch fixture.
 
 ## Invariant Coverage
 
-None
+- INV-001: Covered by mismatch fixture.
 
 ## Deferred / Not Covered
 
@@ -57,8 +52,8 @@ None
 
 ## Residual Risks
 
-None
+- Incorrectly accepting this fixture would make verification evidence unreliable.
 
 ## Follow-up TODOs
 
-- None
+- Template-Test-99: [Test] Keep qa_status / Verdict mismatch fixture active.

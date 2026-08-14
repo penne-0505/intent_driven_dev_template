@@ -182,7 +182,7 @@ assert(
 assert(
   templateLockExample.schema === 1 &&
     templateLockExample.source ===
-      "https://github.com/penne-0505/docs_driven_dev_template.git" &&
+      "https://github.com/penne-0505/intent_driven_dev_template.git" &&
     templateLockExample.revision?.tag === "v1.4.0" &&
     templateLockExample.revision?.commit ===
       "REPLACE_WITH_THE_TAGS_FULL_40_CHARACTER_COMMIT_SHA",

@@ -30,7 +30,7 @@ Verdict: PASS
 
 | Command / Test | Result | Notes |
 | --- | --- | --- |
-| `deno run --allow-read scripts/validate-qa.ts --fixture _evals/validator-fixtures/qa/invalid/v3-missing-transferable-principles.md` | FAIL | Missing reflection section must be rejected. |
+| `deno run --allow-read scripts/validate-qa.ts --fixture _meta/validator-fixtures/qa/invalid/v3-missing-transferable-principles.md` | FAIL | Missing reflection section must be rejected. |
 
 ## Automated Test Results
 

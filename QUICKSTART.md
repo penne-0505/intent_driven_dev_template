@@ -46,7 +46,7 @@ find starter -mindepth 1 -maxdepth 1 -exec mv -f {} . \; && rmdir starter
 4. [TODO.md](TODO.md) の初期タスクを確認し、不要なテンプレート用タスクは完了後に削除する。
 5. TODO の `Risk` を確認し、`Size >= M` または `Risk >= Medium` のタスクでは Plan / Intent / QA test-plan を用意する。
 6. 実装後、必要な verification を `_docs/qa/<Area>/<slug>/verification.md` に残す。
-7. 一回限りの実装プロンプトを root に残さない。残す必要がある場合は `_evals/prompts/` 等に移し、非運用の履歴資料として明記する。
+7. 一回限りの実装プロンプトを root に残さない。残す必要がある場合は `_meta/prompts/` 等に移し、非運用の履歴資料として明記する。
 8. tagged release から開始する場合は `docs-template.lock.example.json` を `docs-template.lock.json` としてコピーし、採用 tag を解決した full SHA を記録する。
 
 ### Agent lifecycle hooks
@@ -172,5 +172,5 @@ deno run --allow-read scripts/test-agent-workflow-smoke.ts
 テンプレートを配布する場合は、`.git` や `.jj` などの VCS メタデータを含めないでください。GitHub 標準アーカイブ、または次のコマンドを使います。
 
 ```bash
-scripts/create-template-archive.sh docs_driven_dev_template.zip
+scripts/create-template-archive.sh intent_driven_dev_template.zip
 ```

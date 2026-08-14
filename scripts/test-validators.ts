@@ -21,45 +21,45 @@ type CommandResult = {
 };
 
 const TODO_VALID = [
-  "_evals/validator-fixtures/todo/valid/basic.md",
+  "_meta/validator-fixtures/todo/valid/basic.md",
 ] as const;
 const TODO_INVALID = [
-  "_evals/validator-fixtures/todo/invalid/missing-title.md",
-  "_evals/validator-fixtures/todo/invalid/malformed-heading.md",
-  "_evals/validator-fixtures/todo/invalid/missing-qa-for-medium.md",
-  "_evals/validator-fixtures/todo/invalid/mismatched-heading-id.md",
+  "_meta/validator-fixtures/todo/invalid/missing-title.md",
+  "_meta/validator-fixtures/todo/invalid/malformed-heading.md",
+  "_meta/validator-fixtures/todo/invalid/missing-qa-for-medium.md",
+  "_meta/validator-fixtures/todo/invalid/mismatched-heading-id.md",
 ] as const;
 const INTENT_VALID = [
-  "_evals/validator-fixtures/intent/valid",
+  "_meta/validator-fixtures/intent/valid",
 ] as const;
 const INTENT_INVALID = [
-  "_evals/validator-fixtures/intent/invalid/missing-why.md",
-  "_evals/validator-fixtures/intent/invalid/orphan-invariant.md",
+  "_meta/validator-fixtures/intent/invalid/missing-why.md",
+  "_meta/validator-fixtures/intent/invalid/orphan-invariant.md",
 ] as const;
 const QA_VALID = [
-  "_evals/validator-fixtures/qa/valid",
+  "_meta/validator-fixtures/qa/valid",
 ] as const;
 const QA_INVALID = [
-  "_evals/validator-fixtures/qa/invalid/missing-invariant.md",
-  "_evals/validator-fixtures/qa/invalid/v2-missing-decision-scope.md",
-  "_evals/validator-fixtures/qa/invalid/status-verdict-mismatch.md",
-  "_evals/validator-fixtures/qa/invalid/verification-in-progress-status.md",
-  "_evals/validator-fixtures/qa/invalid/verification-missing-test-plan-reference.md",
-  "_evals/validator-fixtures/qa/invalid/qa-archive-path.md",
-  "_evals/validator-fixtures/qa/invalid/v3-missing-transferable-principles.md",
-  "_evals/validator-fixtures/qa/invalid/v3-bare-none-transferable-principles.md",
+  "_meta/validator-fixtures/qa/invalid/missing-invariant.md",
+  "_meta/validator-fixtures/qa/invalid/v2-missing-decision-scope.md",
+  "_meta/validator-fixtures/qa/invalid/status-verdict-mismatch.md",
+  "_meta/validator-fixtures/qa/invalid/verification-in-progress-status.md",
+  "_meta/validator-fixtures/qa/invalid/verification-missing-test-plan-reference.md",
+  "_meta/validator-fixtures/qa/invalid/qa-archive-path.md",
+  "_meta/validator-fixtures/qa/invalid/v3-missing-transferable-principles.md",
+  "_meta/validator-fixtures/qa/invalid/v3-bare-none-transferable-principles.md",
 ] as const;
 const FRONTMATTER_VALID = [
-  "_evals/validator-fixtures/frontmatter/valid/intent-schema.md",
-  "_evals/validator-fixtures/frontmatter/valid/qa-schema.md",
-  "_evals/validator-fixtures/frontmatter/valid/qa-schema-v3.md",
+  "_meta/validator-fixtures/frontmatter/valid/intent-schema.md",
+  "_meta/validator-fixtures/frontmatter/valid/qa-schema.md",
+  "_meta/validator-fixtures/frontmatter/valid/qa-schema-v3.md",
 ] as const;
 const FRONTMATTER_INVALID = [
-  "_evals/validator-fixtures/frontmatter/invalid/duplicate-field.md",
-  "_evals/validator-fixtures/frontmatter/invalid/unknown-field.md",
-  "_evals/validator-fixtures/frontmatter/invalid/wrong-type.md",
-  "_evals/validator-fixtures/frontmatter/invalid/intent-schema-on-qa.md",
-  "_evals/validator-fixtures/frontmatter/invalid/qa-schema-on-intent.md",
+  "_meta/validator-fixtures/frontmatter/invalid/duplicate-field.md",
+  "_meta/validator-fixtures/frontmatter/invalid/unknown-field.md",
+  "_meta/validator-fixtures/frontmatter/invalid/wrong-type.md",
+  "_meta/validator-fixtures/frontmatter/invalid/intent-schema-on-qa.md",
+  "_meta/validator-fixtures/frontmatter/invalid/qa-schema-on-intent.md",
 ] as const;
 
 const deno = Deno.execPath();
@@ -136,7 +136,7 @@ const testCase = async ({
 
 // スコープ機構の決定的テスト: DD_SCOPE_PATHS が対象を絞ることを git なしで確認する。
 const SCOPE_FIXTURE =
-  "_evals/validator-fixtures/qa/invalid/missing-invariant.md";
+  "_meta/validator-fixtures/qa/invalid/missing-invariant.md";
 
 // Cursor AppImage 等が LD_LIBRARY_PATH を付ける環境では、子 process にそのまま
 // 継承させると --allow-run=git が拒否される。親 env を掃除してから上書きする。
@@ -418,7 +418,7 @@ for (const target of FRONTMATTER_INVALID) {
 // 対象外パスのみを scope に置くと、invalid fixture は判定されずに pass する。
 ok = await scopeCase({
   label: "out-of-scope invalid fixture is skipped",
-  scopePaths: "_evals/validator-fixtures/qa/valid/test-plan.md",
+  scopePaths: "_meta/validator-fixtures/qa/valid/test-plan.md",
   shouldPass: true,
 }) && ok;
 // scope に含めると、従来通り invalid fixture が fail する。

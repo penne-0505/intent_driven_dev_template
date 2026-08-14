@@ -11,7 +11,7 @@
 
 ## Agent Task
 
-一回限り prompt を active guidance から外し、保持する場合は `_evals/prompts/` 等へ移して historical / non-operational と明記する。
+一回限り prompt を active guidance から外し、保持する場合は `_meta/prompts/` 等へ移して historical / non-operational と明記する。
 
 ## Expected Behavior
 
@@ -27,5 +27,5 @@
 ## Failure Modes to Watch
 
 - `PROMPT.md` を root に残したまま完了扱いにする。
-- 履歴 prompt を警告なしで `_evals/` に置く。
+- 履歴 prompt を警告なしで `_meta/` に置く。
 - 古い prompt 内の作業指示を現行ルールより優先する。
