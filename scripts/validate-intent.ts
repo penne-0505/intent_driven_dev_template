@@ -17,11 +17,13 @@ type ValidationError = {
 
 type DecisionEntry = {
   id: string;
+  candidate: boolean;
   title: string;
   body: string;
 };
 
-const INTENT_SCHEMA = 2;
+const INTENT_SCHEMAS = [2, 3] as const;
+const CURRENT_INTENT_SCHEMA = 3;
 const INTENT_PATH_RE =
   /^_docs\/intent\/([A-Za-z][A-Za-z0-9-]*)\/([a-z0-9]+(?:-[a-z0-9]+)*)\/decision\.md$/;
 
@@ -115,14 +117,17 @@ const decisionEntries = (content: string): DecisionEntry[] => {
   const lines = content.split(/\r?\n/);
   const entries: DecisionEntry[] = [];
   for (let i = 0; i < lines.length; i += 1) {
-    const match = lines[i].match(/^###\s+(DEC-\d{3}):\s+(.+)$/);
+    const match = lines[i].match(
+      /^###\s+(DEC-\d{3,})(\s+\(candidate\))?:\s+(.+)$/,
+    );
     if (!match) continue;
     const end = lines.findIndex((line, index) =>
-      index > i && /^###\s+DEC-\d{3}:/.test(line)
+      index > i && /^###\s+DEC-\d{3,}(\s+\(candidate\))?:/.test(line)
     );
     entries.push({
       id: match[1],
-      title: match[2].trim(),
+      candidate: match[2] !== undefined,
+      title: match[3].trim(),
       body: lines.slice(i + 1, end === -1 ? lines.length : end).join("\n"),
     });
     if (end !== -1) i = end - 1;
@@ -147,11 +152,17 @@ const add = (
   items.push({ file, message });
 };
 
-const validateV2 = (
+type DocIds = {
+  decisionIds: string[];
+  invariantIds: string[];
+};
+
+const validateDecisionDoc = (
   file: string,
   src: string,
+  schema: number,
   errors: ValidationError[],
-): void => {
+): DocIds => {
   const requiredHeadings = [
     "Context",
     "Decisions",
@@ -162,13 +173,17 @@ const validateV2 = (
   ] as const;
   for (const heading of requiredHeadings) {
     if (sectionContent(src, heading) === null) {
-      add(errors, file, `intent_schema 2 missing heading: ${heading}`);
+      add(errors, file, `intent_schema ${schema} missing heading: ${heading}`);
     }
   }
 
   const decisions = decisionEntries(sectionContent(src, "Decisions") ?? "");
   if (decisions.length === 0) {
-    add(errors, file, "intent_schema 2 requires at least one DEC-001 entry");
+    add(
+      errors,
+      file,
+      `intent_schema ${schema} requires at least one DEC entry`,
+    );
   }
 
   const decisionIds = new Set<string>();
@@ -177,6 +192,13 @@ const validateV2 = (
       add(errors, file, `duplicate decision ID: ${decision.id}`);
     }
     decisionIds.add(decision.id);
+    if (decision.candidate && !file.includes("/conventions/")) {
+      add(
+        errors,
+        file,
+        `${decision.id}: candidate mark is only allowed in conventions decision docs`,
+      );
+    }
     for (const field of ["What", "Why", "Change freedom"] as const) {
       if (!fieldValue(decision.body, field)) {
         add(errors, file, `${decision.id} missing substantive ${field}`);
@@ -190,8 +212,11 @@ const validateV2 = (
     }
   }
 
+  const invariantIds = new Set<string>();
   const invariants = sectionContent(src, "Intent-derived Invariants") ?? "";
-  if (isNoneLike(invariants)) return;
+  if (isNoneLike(invariants)) {
+    return { decisionIds: [...decisionIds], invariantIds: [] };
+  }
 
   const invariantLines = invariants
     .replace(/<!--[\s\S]*?-->/g, "")
@@ -204,13 +229,12 @@ const validateV2 = (
       file,
       "Intent-derived Invariants must be None or use INV-001 (from DEC-001)",
     );
-    return;
+    return { decisionIds: [...decisionIds], invariantIds: [] };
   }
 
-  const invariantIds = new Set<string>();
   for (const line of invariantLines) {
     const match = line.match(
-      /^- (INV-\d{3}) \(from (DEC-\d{3})\):\s*(.+)$/,
+      /^- (INV-\d{3,}) \(from (DEC-\d{3,})\):\s*(.+)$/,
     );
     if (!match) {
       add(
@@ -233,6 +257,7 @@ const validateV2 = (
       );
     }
   }
+  return { decisionIds: [...decisionIds], invariantIds: [...invariantIds] };
 };
 
 const collectFiles = async (target: string): Promise<string[]> => {
@@ -257,6 +282,9 @@ const run = async (): Promise<void> => {
     "_docs/intent";
   const inScope = makeInScope(await loadScope());
   const errors: ValidationError[] = [];
+  const warnings: ValidationError[] = [];
+  const globalDecisionIds = new Map<string, string>();
+  const globalInvariantIds = new Map<string, string>();
 
   for (const file of await collectFiles(target)) {
     if (!fixtureTarget && !inScope(file)) continue;
@@ -275,18 +303,62 @@ const run = async (): Promise<void> => {
       continue;
     }
 
-    if (!("intent_schema" in attrs)) continue;
-    if (attrs.intent_schema !== INTENT_SCHEMA) {
+    if (!("intent_schema" in attrs)) {
       add(
-        errors,
+        warnings,
         file,
-        `intent_schema must be ${INTENT_SCHEMA} when present`,
+        "legacy intent document without intent_schema: migrate when its meaning next changes",
       );
       continue;
     }
-    validateV2(file, src, errors);
+    const schema = attrs.intent_schema;
+    if (!INTENT_SCHEMAS.some((allowed) => allowed === schema)) {
+      add(
+        errors,
+        file,
+        `intent_schema must be one of ${INTENT_SCHEMAS.join(", ")}`,
+      );
+      continue;
+    }
+    if (schema !== CURRENT_INTENT_SCHEMA) {
+      add(
+        warnings,
+        file,
+        `legacy intent_schema ${schema}: migrate to ${CURRENT_INTENT_SCHEMA} when its meaning next changes`,
+      );
+    }
+    const ids = validateDecisionDoc(file, src, Number(schema), errors);
+    if (schema === CURRENT_INTENT_SCHEMA) {
+      for (const id of ids.decisionIds) {
+        const existing = globalDecisionIds.get(id);
+        if (existing && existing !== file) {
+          add(
+            errors,
+            file,
+            `${id} is already defined in ${existing} (DEC IDs are repository-unique)`,
+          );
+        } else {
+          globalDecisionIds.set(id, file);
+        }
+      }
+      for (const id of ids.invariantIds) {
+        const existing = globalInvariantIds.get(id);
+        if (existing && existing !== file) {
+          add(
+            errors,
+            file,
+            `${id} is already defined in ${existing} (INV IDs are repository-unique)`,
+          );
+        } else {
+          globalInvariantIds.set(id, file);
+        }
+      }
+    }
   }
 
+  for (const { file, message } of warnings) {
+    console.warn(`WARN: ${file}\n  - ${message}`);
+  }
   if (errors.length > 0) {
     for (const { file, message } of errors) {
       console.error(`ERROR: ${file}\n  - ${message}`);

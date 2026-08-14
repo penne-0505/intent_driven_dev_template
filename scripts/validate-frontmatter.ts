@@ -35,7 +35,6 @@ const QA_STATUS_VALUES = [
 const REQUIRED_KEYS = [
   "title",
   "status",
-  "draft_status",
   "created_at",
   "updated_at",
   "references",
@@ -45,7 +44,6 @@ const REQUIRED_KEYS = [
 const REQUIRED_SCALARS = [
   "title",
   "status",
-  "draft_status",
   "created_at",
   "updated_at",
 ] as const;
@@ -53,7 +51,8 @@ const STATUS_VALUES = ["proposed", "active", "superseded", "obsolete"] as const;
 const DRAFT_STATUS_VALUES = ["idea", "exploring", "paused", "n/a"] as const;
 // 許可キーは path 種別ごとに閉じる。共通キーへ混ぜると、schema marker が
 // 種別を跨いで黙認される（QA 文書に intent_schema があっても通る）。
-const COMMON_KEYS = new Set<string>(REQUIRED_KEYS);
+// draft_status は legacy 文書の受理のためだけに許可する (新 schema では書かない)。
+const COMMON_KEYS = new Set<string>([...REQUIRED_KEYS, "draft_status"]);
 const DRAFT_ONLY_KEYS = new Set([
   "stale_exempt_until",
   "stale_exempt_reason",
