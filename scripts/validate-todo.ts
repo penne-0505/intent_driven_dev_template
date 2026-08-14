@@ -14,6 +14,7 @@ const CATEGORIES = [
   "Doc",
   "Test",
   "Chore",
+  "R2",
 ] as const;
 const REQUIRED_FIELDS = [
   "Title",
@@ -30,10 +31,9 @@ const REQUIRED_FIELDS = [
   "Plan",
   "Intent",
   "QA",
-  "Verification",
 ] as const;
 const SECTION_NAMES = ["Inbox", "Backlog", "Ready", "In Progress"] as const;
-const DOC_PATH_FIELDS = ["Plan", "Intent", "QA", "Verification"] as const;
+const DOC_PATH_FIELDS = ["Plan", "Intent", "QA"] as const;
 
 type Priority = (typeof PRIORITIES)[number];
 type Size = (typeof SIZES)[number];
@@ -84,10 +84,10 @@ const PATH_PATTERNS: Record<DocPathField, RegExp> = {
   Intent:
     /^_docs\/intent\/([A-Za-z][A-Za-z0-9-]*)\/([a-z0-9]+(?:-[a-z0-9]+)*)\/decision\.md$/,
   QA:
-    /^_docs\/qa\/([A-Za-z][A-Za-z0-9-]*)\/([a-z0-9]+(?:-[a-z0-9]+)*)\/test-plan\.md$/,
-  Verification:
-    /^_docs\/qa\/([A-Za-z][A-Za-z0-9-]*)\/([a-z0-9]+(?:-[a-z0-9]+)*)\/verification\.md$/,
+    /^_docs\/qa\/([A-Za-z][A-Za-z0-9-]*)\/(?:([a-z0-9]+(?:-[a-z0-9]+)*)\/qa\.md|maintenance\.md)$/,
 };
+const DEDICATED_QA_RE =
+  /^_docs\/qa\/([A-Za-z][A-Za-z0-9-]*)\/([a-z0-9]+(?:-[a-z0-9]+)*)\/qa\.md$/;
 
 const stripCodeBlocks = (src: string): string => {
   const output: string[] = [];
@@ -448,39 +448,30 @@ const run = async (): Promise<void> => {
       });
     }
 
+    const qaValue = normalizeInlineCode(task.fields.QA ?? "");
+    if (isNone(task.fields.QA)) {
+      add(
+        errors,
+        `${label}: QA must be a qa.md or maintenance.md path (None is not allowed)`,
+      );
+    }
+    const dedicatedQa = DEDICATED_QA_RE.test(qaValue);
     if (size && (LARGE_SIZES as readonly string[]).includes(size)) {
       if (isNone(task.fields.Plan)) {
         add(errors, `${label}: Size ${size} requires Plan`);
       }
-      if (isNone(task.fields.Intent)) {
-        add(errors, `${label}: Size ${size} requires Intent`);
-      }
-      if (isNone(task.fields.QA)) {
-        add(errors, `${label}: Size ${size} requires QA`);
+      if (qaValue !== "" && !isNone(task.fields.QA) && !dedicatedQa) {
+        add(
+          errors,
+          `${label}: Size ${size} requires a dedicated qa.md (not maintenance.md)`,
+        );
       }
     }
     if (risk && riskAtLeast(risk, "Medium")) {
-      if (isNone(task.fields.Intent)) {
-        add(errors, `${label}: Risk ${risk} requires Intent`);
-      }
-      if (isNone(task.fields.QA)) {
-        add(errors, `${label}: Risk ${risk} requires QA`);
-      }
-    }
-    if (risk && riskAtLeast(risk, "High")) {
-      if (isNone(task.fields.Plan)) {
-        add(errors, `${label}: Risk ${risk} requires Plan`);
-      }
-      if (isNone(task.fields.Intent)) {
-        add(errors, `${label}: Risk ${risk} requires Intent`);
-      }
-      if (isNone(task.fields.QA)) {
-        add(errors, `${label}: Risk ${risk} requires QA`);
-      }
-      if (task.section === "In Progress" && isNone(task.fields.Verification)) {
+      if (qaValue !== "" && !isNone(task.fields.QA) && !dedicatedQa) {
         add(
-          warnings,
-          `${label}: In Progress High/Critical risk task should already have Verification`,
+          errors,
+          `${label}: Risk ${risk} requires a dedicated qa.md (not maintenance.md)`,
         );
       }
     }

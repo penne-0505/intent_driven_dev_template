@@ -28,11 +28,10 @@
   2. [ ] Update Quickstart.
 - **Description**:
   - Context: Low-risk template customization.
-  - Notes: Plan / Intent / QA are not required.
+  - Notes: Rounds go to maintenance.md.
 - **Plan**: None
 - **Intent**: None
-- **QA**: None
-- **Verification**: None
+- **QA**: _docs/qa/Docs/maintenance.md
 
 ### Template-Enhance-2: [Enhance] Add validator fixture self-test
 
@@ -55,8 +54,7 @@
   - Notes: Medium risk requires Plan / Intent / QA.
 - **Plan**: _docs/plan/Template/validator-fixture-self-test/plan.md
 - **Intent**: _docs/intent/Template/validator-fixture-self-test/decision.md
-- **QA**: _docs/qa/Template/validator-fixture-self-test/test-plan.md
-- **Verification**: None
+- **QA**: _docs/qa/Template/validator-fixture-self-test/qa.md
 
 ## Ready
 

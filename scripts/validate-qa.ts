@@ -62,9 +62,11 @@ const TODO_FILE = (() => {
     return "TODO.md";
   }
 })();
-const QA_SCHEMAS = [2, 3] as const;
+const QA_SCHEMAS = [2, 3, 4] as const;
 // qa_schema 3 = 2 + verification の Transferable Principles (session-end reflection)
+// qa_schema 4 = 統合 qa.md (Checks + 追記専用 Rounds、Intent Delta / R2 / TP / Verdict)
 const REFLECTION_SCHEMA = 3;
+const UNIFIED_SCHEMA = 4;
 const isWhyFirstSchema = (value: YamlValue | undefined): boolean =>
   QA_SCHEMAS.some((schema) => schema === value);
 const RISKS = ["Low", "Medium", "High", "Critical"] as const;
@@ -91,7 +93,8 @@ const VERDICT_STATUS: Record<Verdict, string> = {
   BLOCKED: "blocked",
 };
 const QA_PATH_RE =
-  /^_docs\/qa\/([A-Za-z][A-Za-z0-9-]*)\/([a-z0-9]+(?:-[a-z0-9]+)*)\/(test-plan|verification)\.md$/;
+  /^_docs\/qa\/([A-Za-z][A-Za-z0-9-]*)\/(?:([a-z0-9]+(?:-[a-z0-9]+)*)\/(test-plan|verification|qa)\.md|(maintenance)\.md)$/;
+const qaKindOf = (match: RegExpMatchArray): string => match[4] ?? match[3];
 const TODO_FIELD_RE = /^- \*\*([A-Za-z][A-Za-z ]*)\*\*:\s*(.*)$/;
 
 const normalizePath = (path: string): string => {
@@ -304,7 +307,6 @@ const validateFrontMatter = (
     const key of [
       "title",
       "status",
-      "draft_status",
       "qa_status",
       "risk",
       "created_at",
@@ -341,6 +343,107 @@ const validateFrontMatter = (
   }
   if (!Array.isArray(attrs.references)) {
     add(errors, file, "references must be an array");
+  }
+};
+
+type ValidateUnifiedQaParams = {
+  file: string;
+  src: string;
+  attrs: FrontMatter;
+  errors: ValidationItem[];
+};
+
+const validateUnifiedQa = (
+  { file, src, attrs, errors }: ValidateUnifiedQaParams,
+): void => {
+  if (attrs.qa_schema !== UNIFIED_SCHEMA) {
+    add(
+      errors,
+      file,
+      `qa.md / maintenance.md require qa_schema: ${UNIFIED_SCHEMA}`,
+    );
+  }
+
+  const isMaintenance = file.endsWith("maintenance.md") ||
+    (typeof attrs.fixture_path === "string" &&
+      attrs.fixture_path.endsWith("maintenance.md"));
+  const requiredHeadings = isMaintenance
+    ? ["Rounds"]
+    : ["Acceptance Criteria", "Checks", "Rounds"];
+  for (const heading of requiredHeadings) {
+    if (sectionContent(src, heading) === null) {
+      add(
+        errors,
+        file,
+        `qa_schema ${UNIFIED_SCHEMA} missing heading: ${heading}`,
+      );
+    }
+  }
+
+  const rounds = sectionContent(src, "Rounds") ?? "";
+  const roundBlocks = rounds.split(/^###\s+Round\b.*$/m).slice(1);
+  if (roundBlocks.length === 0) {
+    if (attrs.qa_status !== "planned" && attrs.qa_status !== "in-progress") {
+      add(
+        errors,
+        file,
+        "qa_status beyond in-progress requires at least one Round",
+      );
+    }
+    return;
+  }
+
+  let lastVerdict: string | null = null;
+  for (const [index, block] of roundBlocks.entries()) {
+    const label = `Round ${index + 1}`;
+    const delta = block.match(/\*\*Intent Delta\*\*:\s*(.+)$/m)?.[1]?.trim();
+    if (!delta) {
+      add(errors, file, `${label}: missing Intent Delta`);
+    } else if (
+      !/DEC-\d+/.test(delta) && !/^None:\s*\S/.test(delta)
+    ) {
+      add(
+        errors,
+        file,
+        `${label}: Intent Delta must reference a DEC or be "None: <reason>"`,
+      );
+    }
+    const principles = block.match(
+      /\*\*Transferable Principles\*\*:\s*(.+)$/m,
+    )?.[1]?.trim();
+    if (!principles) {
+      add(errors, file, `${label}: missing Transferable Principles`);
+    } else if (/^None\s*$/i.test(principles)) {
+      add(
+        errors,
+        file,
+        `${label}: Transferable Principles must be a candidate or "None: <reason>"`,
+      );
+    }
+    const verdict = block.match(/\*\*Verdict\*\*:\s*(\S+)/m)?.[1];
+    if (!verdict || !(VERDICTS as readonly string[]).includes(verdict)) {
+      add(
+        errors,
+        file,
+        `${label}: Verdict must be one of ${VERDICTS.join(", ")}`,
+      );
+    } else {
+      lastVerdict = verdict;
+    }
+  }
+
+  if (
+    !isMaintenance && lastVerdict &&
+    typeof attrs.qa_status === "string" &&
+    attrs.qa_status !== VERDICT_STATUS[lastVerdict as Verdict]
+  ) {
+    add(
+      errors,
+      file,
+      `qa_status must match the last round verdict (${lastVerdict} -> ${
+        VERDICT_STATUS[lastVerdict as Verdict]
+      })`,
+    );
   }
 };
 
@@ -706,18 +809,13 @@ const validateTodoConsistency = async (
     for (const field of ["QA", "Verification"] as const) {
       const path = normalizeInlineCode(task.fields[field]);
       if (!path || path === "None") continue;
-      if (!QA_PATH_RE.test(path)) {
+      const pathMatch = path.match(QA_PATH_RE);
+      if (!pathMatch) {
         add(errors, TODO_FILE, `${label}: ${field} path is not canonical`);
         continue;
       }
-      if (!await exists(path)) {
-        add(
-          errors,
-          TODO_FILE,
-          `${label}: ${field} file does not exist: ${path}`,
-        );
-        continue;
-      }
+      if (!await exists(path)) continue;
+      if (qaKindOf(pathMatch) === "maintenance") continue;
       const src = await Deno.readTextFile(path);
       const { attrs, error } = parseFrontMatter(src);
       if (error || !attrs) {
@@ -798,7 +896,7 @@ const effectiveQaMatch = ({
     add(
       errors,
       file,
-      "QA path must match _docs/qa/<Area>/<slug>/test-plan.md or verification.md",
+      "QA path must match _docs/qa/<Area>/<slug>/qa.md, _docs/qa/<Area>/maintenance.md, or a legacy test-plan.md / verification.md path",
     );
     return null;
   }
@@ -830,10 +928,18 @@ const run = async (): Promise<void> => {
 
     const match = effectiveQaMatch({ file, src, attrs, fixtureMode, errors });
     if (!match) continue;
-    const [, area, slug, kind] = match;
+    const [, area, slug] = match;
+    const kind = qaKindOf(match);
 
     validateFrontMatter(file, attrs, errors);
-    if (kind === "test-plan") {
+    if (kind === "qa" || kind === "maintenance") {
+      validateUnifiedQa({ file, src, attrs, errors });
+    } else if (kind === "test-plan") {
+      add(
+        warnings,
+        file,
+        "legacy test-plan.md: migrate to the unified qa.md (qa_schema: 4) when its meaning next changes",
+      );
       await validateTestPlan({
         file,
         src,
@@ -844,6 +950,11 @@ const run = async (): Promise<void> => {
         warnings,
       });
     } else {
+      add(
+        warnings,
+        file,
+        "legacy verification.md: migrate to the unified qa.md (qa_schema: 4) when its meaning next changes",
+      );
       validateVerification({ file, src, attrs, area, slug, errors });
     }
   }
