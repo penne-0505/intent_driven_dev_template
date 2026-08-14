@@ -22,7 +22,6 @@
 - **Entry Criteria**:
   - ID が一意に採番されている。
   - 必須フィールドがすべて埋まっている。
-  - `Risk`, `Acceptance Criteria`, `Intent`, `QA`, `Verification` が明示されている。
 - **Exit Condition**: `Ready` の要件を満たす。
 
 ### Phase 2: Ready (Actionable)
@@ -30,8 +29,8 @@
 - **Location**: `## Ready` セクション
 - **Status**: いつでも着手可能な状態。
 - **Entry Criteria**:
-  - `Size >= M` の場合、Plan / Intent / QA が作成済みである。
-  - `Risk >= Medium` の場合、Intent / QA が作成済みである。
+  - `Size >= M` の場合、Plan が作成済みである。
+  - `Risk >= Medium` の場合、QA 文書が `qa_status: planned` で作成済みである。
   - Dependencies が解決済み、または未解決理由が明確である。
   - Steps が具体的、または Plan / QA への進行管理ポインタとして機能している。
 - **Exit Condition**: 作業者がタスクに着手する。
@@ -40,13 +39,12 @@
 
 - **Location**: `## In Progress` セクション
 - **Status**: 現在実行中。
-- **Entry Criteria**: 作業者がアサインされている、または自律的に着手している。
 
 ### Phase 4: Completed
 
 - **Location**: なし。完了タスクは `TODO.md` から削除する。
-- **Exit Action**: Goal と Acceptance Criteria の達成、および必要な verification verdict を確認後に削除する。
-- **History**: 完了履歴は PR / commit / CHANGELOG / intent / guide / reference / QA verification に残す。`TODO.md` に Done / Archived セクションは作らない。
+- **Exit Action**: Acceptance Criteria の達成と、QA round の verdict を確認後に削除する。
+- **History**: 完了履歴の正典は QA round (`qa.md` / `maintenance.md`) である。`TODO.md` に Done / Archived セクションは作らない。
 
 ## 2. Schema & Validation
 
@@ -65,10 +63,9 @@
 | **Acceptance Criteria** | `Markdown` | `AC-001` 形式で、検証可能な条件を書く。 |
 | **Steps** | `Markdown` | 進行管理用チェックリスト。 |
 | **Description** | `Markdown` | Context / Notes を含める。 |
-| **Plan** | `Path` | `None` または `_docs/plan/<Area>/<slug>/plan.md`。 |
-| **Intent** | `Path` | `None` または `_docs/intent/<Area>/<slug>/decision.md`。 |
-| **QA** | `Path` | `None` または `_docs/qa/<Area>/<slug>/test-plan.md`。 |
-| **Verification** | `Path` | `None` または `_docs/qa/<Area>/<slug>/verification.md`。 |
+| **Plan** | `Path` | `None` または `_docs/plan/<Area>/<slug>/plan.md`。`Size >= M` で必須。 |
+| **Intent** | `Path` | `None` または `_docs/intent/<Area>/<slug>/decision.md`。DEC を作ったら埋める。 |
+| **QA** | `Path` | `_docs/qa/<Area>/<slug>/qa.md` または `_docs/qa/<Area>/maintenance.md`。`None` 不可。 |
 
 推奨形式:
 
@@ -94,23 +91,24 @@
   - Notes:
 - **Plan**: None | _docs/plan/<Area>/<slug>/plan.md
 - **Intent**: None | _docs/intent/<Area>/<slug>/decision.md
-- **QA**: None | _docs/qa/<Area>/<slug>/test-plan.md
-- **Verification**: None | _docs/qa/<Area>/<slug>/verification.md
+- **QA**: _docs/qa/<Area>/<slug>/qa.md | _docs/qa/<Area>/maintenance.md
 ```
 
-## 3. Required Documents
+## 3. Required Depth
+
+すべてのタスクは完了時に Intent Delta の宣言と QA round を持つ (常時 ON ループ)。省略できるのは
+深さであって、存在ではない。詳細は `_docs/standards/quality_assurance.md` を参照。
 
 | Condition | Requirement |
 | --- | --- |
-| `Size XS/S` and `Risk Low` | Plan / Intent / QA / Verification は `None` 可。 |
-| `Size >= M` | Plan / Intent / QA が必須。 |
-| `Risk >= Medium` | Intent / QA が必須。 |
-| `Risk High / Critical` | Plan / Intent / QA が必須。完了前に Verification が必須。 |
-| `Category Bug` | Acceptance Criteria に再発防止条件を含め、QA test-plan に regression test または no-test rationale を含める。 |
-| `Category Refactor` | QA test-plan に behavior-preservation checks を含める。 |
-| Agent workflow / validator / CI / Skill / documentation rule 変更 | QA test-plan に agent misbehavior checks を含める。 |
-
-`Size XS/S` かつ `Risk Low` でも、将来の作業者が未実装と誤認しそうな非対応・制限・省略は intentional omission risk として扱う。その場合は、必須フィールドを増やさず、TODO Description / PR / commit、または必要に応じて Plan Non-Goals / Intent の DEC（Why / Why not）に理由を残す。
+| すべてのタスク | 完了時に QA round (Intent Delta / verdict を含む)。微小変更は `maintenance.md` へ追記。 |
+| `Size >= M` | Plan が必須。QA は専用の `qa.md` を作る。 |
+| `Risk >= Medium` | `qa.md` を実装前に `qa_status: planned` で作る。 |
+| `Risk High / Critical` | rollback / recovery / security / data safety の確認と、完了前の verdict が必須。 |
+| DEC 新設 / `Size >= M` / `Risk High` | R2 再構成テストが発動する。`R2: PENDING` を round に書き、R2 タスクを積む。 |
+| `Category Bug` | Acceptance Criteria に再発防止条件を含め、regression test または no-test rationale を残す。 |
+| `Category Refactor` | behavior-preservation checks を残す。 |
+| Agent workflow / validator / CI / Skill / documentation rule 変更 | 自動的に `Risk High` (パスベース下限)。agent misbehavior checks を含める。 |
 
 ## 4. Completion Rules
 
@@ -118,26 +116,23 @@
 
 1. Steps が完了している。
 2. Acceptance Criteria が満たされている。
-3. `Size >= M` または `Risk >= Medium` の場合、`verification.md` が存在する。
-4. verification verdict が `PASS` である。
-5. `PARTIAL` の場合は、残リスクと follow-up TODO が明記されている。
-6. `FAIL` / `BLOCKED` の場合は完了扱いにしない。
-7. 必要な intent / guide / reference / QA docs が更新されている。
-
-完了履歴は `verification.md`、intent、guide、reference、PR / commit に残す。`TODO.md` は未完了作業の source of truth として保つ。
+3. QA round が記録され、Intent Delta が宣言されている (DEC 新設 / applied / 理由付き None)。
+4. verdict が `PASS` である。`PARTIAL` の場合は、残リスクと follow-up TODO が明記されている。
+5. `FAIL` / `BLOCKED` の場合は完了扱いにしない。
+6. R2 発動タスクは、`R2: PENDING` の記録と R2 タスクの追加が済んでいる。
+7. Plan があれば `_docs/archives/plan/` へ移送し、参照を更新している。
 
 ## 5. Canonical Document Paths
 
 ```text
-_docs/draft/<Area>/<slug>/notes.md
-_docs/survey/<Area>/<slug>/survey.md
 _docs/plan/<Area>/<slug>/plan.md
 _docs/intent/<Area>/<slug>/decision.md
-_docs/qa/<Area>/<slug>/test-plan.md
-_docs/qa/<Area>/<slug>/verification.md
+_docs/intent/<Area>/conventions/decision.md
+_docs/qa/<Area>/<slug>/qa.md
+_docs/qa/<Area>/maintenance.md
 _docs/guide/<Area>/<slug>/usage.md
 _docs/reference/<Area>/<slug>/reference.md
-_docs/archives/{draft,plan,survey}/<Area>/<slug>/...
+_docs/archives/plan/<Area>/<slug>/plan.md
 ```
 
 `<Area>` はタスクの `Area` と一致させる。`<slug>` は機能・変更単位の kebab-case 名にする。`intent` / `qa` / `guide` / `reference` は archive 対象にしない。
@@ -154,6 +149,7 @@ _docs/archives/{draft,plan,survey}/<Area>/<slug>/...
 - `Doc` (Documentation)
 - `Test` (Testing)
 - `Chore` (Maintenance/Misc)
+- `R2` (Reconstruction Test)
 
 ### Priorities
 
@@ -172,7 +168,7 @@ _docs/archives/{draft,plan,survey}/<Area>/<slug>/...
 
 ### Risk
 
-Risk の詳細は `_docs/standards/quality_assurance.md` を参照する。
+Risk の詳細とパスベースの自動下限は `_docs/standards/quality_assurance.md` を参照する。
 
 - `Low`: 局所的で失敗影響が小さい変更。
 - `Medium`: 機能挙動、ワークフロー、validator、ドキュメント規約、agent skill に影響する変更。
@@ -186,32 +182,36 @@ Risk の詳細は `_docs/standards/quality_assurance.md` を参照する。
 1. `Next ID No` を読み取り、割り当て予定の ID を決定する。
 2. `Next ID No` をインクリメントしてファイルを更新する。
 3. Inbox の内容を解析し、最適な `Area` / `Category` / `Risk` を決定する。
-4. intentional omission risk があるか確認する。将来「未実装なので直す」と誤認されそうな非対応・制限・省略がある場合は、Description に理由を残すか、設計判断として Intent を作成する。
-5. ID を生成する。
-6. Acceptance Criteria を `AC-001` 形式で書く。
-7. 必須文書条件に従い、Plan / Intent / QA / Verification を `None` または canonical path で埋める。
-8. タスクを `Backlog` の末尾に追加する。
-9. 元の Inbox 行を削除する。
+4. ID を生成し、Acceptance Criteria を `AC-001` 形式で書く。
+5. 深さ条件に従い、Plan / Intent / QA を埋める (QA は `None` 不可)。
+6. タスクを `Backlog` の末尾に追加し、元の Inbox 行を削除する。
 
 ### Promote to Ready
 
-1. `Size >= M` なら Plan / Intent / QA が存在することを確認する。
-2. `Risk >= Medium` なら Intent / QA が存在することを確認する。
-3. QA test-plan の Test Matrix が主要 AC と、存在する場合の INV を最低 1 つの確認手段へ割り当て、影響する DEC の review scope を示していることを確認する。
-4. Dependencies が解決済みか確認する。
-5. 全てクリアした場合のみ `Ready` セクションへ移動する。
+1. `Size >= M` なら Plan が存在することを確認する。
+2. `Risk >= Medium` なら `qa.md` が `qa_status: planned` で存在し、Checks が主要 AC を確認手段へ
+   割り当てていることを確認する。
+3. Dependencies が解決済みか確認する。
+4. 全てクリアした場合のみ `Ready` セクションへ移動する。
 
 ### Complete Task
 
 1. Steps と Acceptance Criteria を確認する。
-2. `Size >= M` または `Risk >= Medium` なら `qa-review` skill を使う。
-3. verification verdict が `PASS`、または許容済み `PARTIAL` であることを確認する。
+2. QA round を記録する (Intent Delta / verdict 必須)。R1 review を行い、発動条件を満たすなら
+   `R2: PENDING` と R2 タスクを積む。
+3. verdict が `PASS`、または許容済み `PARTIAL` であることを確認する。
 4. `FAIL` / `BLOCKED` の場合は、タスクを残すか follow-up を追加する。
 5. 完了可能な場合のみ `TODO.md` から削除する。
 
+### R2 Task
+
+R2 タスクを拾った agent は、対象 diff とリポジトリ内の docs だけを読んで
+`_docs/standards/quality_assurance.md` の固定設問 4 つに答え、結果と gap を該当 QA 文書の
+round に追記する。gap があれば DEC 修繕タスクを積む。
+
 ## 8. Task Definition Examples
 
-### Case A: XS/S + Low Risk Task
+### Case A: 微小タスク (XS + Low)
 
 ```markdown
 ### Docs-Chore-10: [Chore] Update project display name
@@ -226,17 +226,14 @@ Risk の詳細は `_docs/standards/quality_assurance.md` を参照する。
 - **Goal**: README と Quickstart の表示名がプロジェクト名に置き換わっている。
 - **Acceptance Criteria**:
   - AC-001: README の旧テンプレート名が新しいプロジェクト名に置き換わっている。
-  - AC-002: Quickstart の初回案内が新しいプロジェクト名を参照している。
 - **Steps**:
-  1. [ ] README.md を更新する
-  2. [ ] QUICKSTART.md を更新する
+  1. [ ] README.md と QUICKSTART.md を更新する
 - **Description**:
   - Context: 新規プロジェクト作成直後の軽量カスタマイズ。
-  - Notes: Plan / Intent / QA は不要。
+  - Notes: 完了時に maintenance.md へ round を 1 つ追記する (Intent Delta: None 想定)。
 - **Plan**: None
 - **Intent**: None
-- **QA**: None
-- **Verification**: None
+- **QA**: _docs/qa/Docs/maintenance.md
 ```
 
 ### Case B: Size M + Medium Risk Task
@@ -254,17 +251,16 @@ Risk の詳細は `_docs/standards/quality_assurance.md` を参照する。
 - **Goal**: 新規メンバーが onboarding command で初期診断を実行できる。
 - **Acceptance Criteria**:
   - AC-001: command が環境診断を実行し、結果を標準出力に表示する。
-  - AC-002: decision の Why / Change freedom が記録され、必要な場合だけ intent-derived invariant に基づくテストまたは validator が存在する。
+  - AC-002: 採用した設計判断が DEC として記録され、該当箇所にポインタコメントが置かれている。
 - **Steps**:
   1. [ ] Plan の Scope / Non-Goals を確認する
-  2. [ ] QA test-plan の Test Matrix に従って実装と検証を進める
+  2. [ ] qa.md の Checks に従って実装と検証を進める
 - **Description**:
   - Context: ユーザー向け workflow が増えるため Medium risk とする。
-  - Notes: Plan / Intent / QA が必須。
+  - Notes: Size M のため R2 が発動する。
 - **Plan**: _docs/plan/Core/onboarding-command/plan.md
 - **Intent**: _docs/intent/Core/onboarding-command/decision.md
-- **QA**: _docs/qa/Core/onboarding-command/test-plan.md
-- **Verification**: None
+- **QA**: _docs/qa/Core/onboarding-command/qa.md
 ```
 
 ### Case C: Agent Workflow / Validator / Skill Task
@@ -276,24 +272,22 @@ Risk の詳細は `_docs/standards/quality_assurance.md` を参照する。
 - **ID**: Workflow-Chore-12
 - **Priority**: P1
 - **Size**: M
-- **Risk**: Medium
+- **Risk**: High
 - **Area**: Workflow
 - **Dependencies**: []
 - **Goal**: TODO validator が新 schema と QA 必須条件を検出できる。
 - **Acceptance Criteria**:
-  - AC-001: validator が Risk / Intent / QA 欠落を error として検出する。
-  - AC-002: QA test-plan に agent misbehavior checks が含まれている。
+  - AC-001: validator が Risk / QA 欠落を error として検出する。
+  - AC-002: agent misbehavior checks が QA round に残っている。
 - **Steps**:
   1. [ ] Plan / Intent / QA を読む
   2. [ ] validator を更新する
-  3. [ ] agent misbehavior checks を verification に残す
 - **Description**:
-  - Context: Agent workflow / validator / Skill 変更では、agent が古い運用へ戻るリスクを検証する。
+  - Context: scripts/ に触れるためパスベース下限により Risk High。R2 が発動する。
   - Notes: `validate-todo` と `validate-qa` の両方を実行する。
 - **Plan**: _docs/plan/Workflow/todo-validator/plan.md
 - **Intent**: _docs/intent/Workflow/todo-validator/decision.md
-- **QA**: _docs/qa/Workflow/todo-validator/test-plan.md
-- **Verification**: None
+- **QA**: _docs/qa/Workflow/todo-validator/qa.md
 ```
 
 ---
@@ -325,11 +319,10 @@ Risk の詳細は `_docs/standards/quality_assurance.md` を参照する。
   3. [ ] 変更後にリンクと安全基準の整合性を確認する
 - **Description**:
   - Context: 新規プロジェクト作成直後に agent 向け入口を調整する。
-  - Notes: `Size XS` かつ `Risk Low` のため Plan / Intent / QA は不要。
+  - Notes: 完了時に maintenance.md へ round を追記する。
 - **Plan**: None
 - **Intent**: None
-- **QA**: None
-- **Verification**: None
+- **QA**: _docs/qa/Docs/maintenance.md
 
 ### Docs-Chore-2: [Chore] Customize README.md for project
 
@@ -351,11 +344,10 @@ Risk の詳細は `_docs/standards/quality_assurance.md` を参照する。
   4. [ ] 不要なテンプレート固有の記述を削除または修正する
 - **Description**:
   - Context: テンプレートから実プロジェクトへ移行するための初期作業。
-  - Notes: `Size S` かつ `Risk Low` のため Plan / Intent / QA は不要。
+  - Notes: 完了時に maintenance.md へ round を追記する。
 - **Plan**: None
 - **Intent**: None
-- **QA**: None
-- **Verification**: None
+- **QA**: _docs/qa/Docs/maintenance.md
 
 ### Docs-Chore-3: [Chore] Update LICENSE.txt author attribution
 
@@ -376,11 +368,10 @@ Risk の詳細は `_docs/standards/quality_assurance.md` を参照する。
   3. [ ] README のライセンスリンクを確認する
 - **Description**:
   - Context: OSS 配布前に著作者表示をプロジェクトに合わせる。
-  - Notes: `Size XS` かつ `Risk Low` のため Plan / Intent / QA は不要。
+  - Notes: 完了時に maintenance.md へ round を追記する。
 - **Plan**: None
 - **Intent**: None
-- **QA**: None
-- **Verification**: None
+- **QA**: _docs/qa/Docs/maintenance.md
 
 ### Workflow-Chore-7: [Chore] Set incremental adoption scope
 
@@ -401,11 +392,10 @@ Risk の詳細は `_docs/standards/quality_assurance.md` を参照する。
   3. [ ] `actions/checkout` を `fetch-depth: 0` にする
 - **Description**:
   - Context: 新規プロジェクトでは不要。既存プロジェクトへ後付け導入する場合のみ着手する条件付きタスク。導入しない場合はこのタスクを削除してよい。
-  - Notes: 手順は QUICKSTART「既存プロジェクトへ後付け導入する場合」と `_docs/standards/documentation_operations.md` の段階的導入スコープを参照。`Size XS` かつ `Risk Low` のため Plan / Intent / QA は不要。
+  - Notes: 手順は QUICKSTART「既存プロジェクトへ後付け導入する場合」と `_docs/standards/documentation_operations.md` の段階的導入スコープを参照。完了時に maintenance.md へ round を追記する。
 - **Plan**: None
 - **Intent**: None
-- **QA**: None
-- **Verification**: None
+- **QA**: _docs/qa/Workflow/maintenance.md
 
 ### Workflow-Chore-11: [Chore] Record template revision provenance
 
@@ -416,7 +406,7 @@ Risk の詳細は `_docs/standards/quality_assurance.md` を参照する。
 - **Risk**: Low
 - **Area**: Workflow
 - **Dependencies**: []
-- **Goal**: 採用した docs-driven template release の tag と full SHA が、後続 migration で再利用できる形で記録されている。
+- **Goal**: 採用した template release の tag と full SHA が、後続 migration で再利用できる形で記録されている。
 - **Acceptance Criteria**:
   - AC-001: `docs-template.lock.example.json` から `docs-template.lock.json` が作成され、採用した release tag とその tag が解決する full 40-character commit SHA を記録している。
   - AC-002: lock の `source` が実際の upstream template repository を指し、moving branch tip を revision として使用していない。
@@ -427,11 +417,10 @@ Risk の詳細は `_docs/standards/quality_assurance.md` を参照する。
   4. [ ] tag と full SHA の対応を再確認する
 - **Description**:
   - Context: downstream project が template の推奨更新を three-way migration で継続的に取り込むための provenance lock。
-  - Notes: `DD_SCOPE_BASE` は project 内の validator scope であり、この lock の代替ではない。pre-`v1.0.0` project は最初の migration 完了時に lock を作成する。`Size XS` かつ `Risk Low` のため Plan / Intent / QA は不要。
+  - Notes: `DD_SCOPE_BASE` は project 内の validator scope であり、この lock の代替ではない。完了時に maintenance.md へ round を追記する。
 - **Plan**: None
 - **Intent**: None
-- **QA**: None
-- **Verification**: None
+- **QA**: _docs/qa/Workflow/maintenance.md
 
 ---
 
