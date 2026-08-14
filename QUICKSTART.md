@@ -1,6 +1,6 @@
 # Quickstart
 
-このテンプレートは、人間と Codex / Claude Code / 汎用 coding agent が `TODO.md` と `_docs/` を読みながら開発を進めるための土台です。最初のセットアップでは、プロジェクト固有情報に置き換えることと、agent が迷わない入口を残すことを優先してください。
+このテンプレートは、Codex / Claude Code / 汎用 coding agent が intent-driven development —「すべての変更が意図の宣言と検証記録を伴う」— で開発を進めるための土台です。最初のセットアップでは、プロジェクト固有情報に置き換えることと、agent が迷わない入口を残すことを優先してください。
 
 ## 0. 初期化
 
@@ -44,8 +44,8 @@ find starter -mindepth 1 -maxdepth 1 -exec mv -f {} . \; && rmdir starter
 2. [LICENSE.txt](LICENSE.txt) の著作者表示を確認し、必要に応じて更新する。
 3. [AGENTS.md](AGENTS.md) をプロジェクト固有のコマンド、禁止事項、実行環境に合わせて調整する。
 4. [TODO.md](TODO.md) の初期タスクを確認し、不要なテンプレート用タスクは完了後に削除する。
-5. TODO の `Risk` を確認し、`Size >= M` または `Risk >= Medium` のタスクでは Plan / Intent / QA test-plan を用意する。
-6. 実装後、必要な verification を `_docs/qa/<Area>/<slug>/verification.md` に残す。
+5. TODO の `Size` / `Risk` を確認する。`Size >= M` では Plan を、`Risk >= Medium` では実装前の `_docs/qa/<Area>/<slug>/qa.md` (`qa_status: planned`) を用意する。
+6. すべての変更で、実装後に QA round (Intent Delta / verdict) を記録する。微小変更は `_docs/qa/<Area>/maintenance.md` へ数行の round を追記するだけでよい。
 7. 一回限りの実装プロンプトを root に残さない。残す必要がある場合は `_meta/prompts/` 等に移し、非運用の履歴資料として明記する。
 8. tagged release から開始する場合は `docs-template.lock.example.json` を `docs-template.lock.json` としてコピーし、採用 tag を解決した full SHA を記録する。
 
@@ -57,14 +57,11 @@ find starter -mindepth 1 -maxdepth 1 -exec mv -f {} . \; && rmdir starter
 - Claude Code: [.claude/settings.json](.claude/settings.json)
 - 共通 script: [scripts/agent-workflow-hook.ts](scripts/agent-workflow-hook.ts)
 
-hook は docs を自動更新しません。
+hook は Tier 2 の optional amplifier です。規範は Markdown (AGENTS.md / standards)、機械強制は Deno validator にあり、hook が無い環境でも同じ規範が成立します。docs の自動更新や Risk の確定は行いません。
 
-- `SessionStart`: docs-driven workflow context を再注入します。
-- `UserPromptSubmit`: 現在の仮説を既知の証拠・反証候補と照合し、Goal / Scope / Non-Goals / Intent を再確認する短い context を毎プロンプト注入します。
-- `PreToolUse`: 書き込み前に、根本原因、呼び出し元やデータフローなどの非局所影響、短期パッチと恒久策、互換性維持期間と根拠を確認します。書き込み対象が CI 設定・`_docs/standards/`・agent 設定・workflow script などの workflow-sensitive path の場合は、Risk High 相当で Intent / Plan / QA / verification が前提になり得ることを実装前に伝えます。`rm` / `git rm` / file deletion / sensitive file 操作は止めます。
-- `Stop`: relevant change の完了時に、`qa-review` / `docs-cleanup` / `check-docs` の証跡と、反証・全体影響・長期保守性・残リスクのうち複数観点からの自己監査を確認します。workflow-sensitive な変更に `_docs/intent/` / `_docs/qa/` の変更が伴わない場合は、完了報告の文面に関わらず closure を求めます。
-
-hook は Risk を自動確定しません。文書要件が適用され得ることを知らせるだけで、分類の判断は作業者と agent に残ります。自己監査は合意済み Scope を拡張する権限ではありません。広い変更が必要なら、実装へ混ぜず提案として切り分けます。また hook は guardrail であり、テスト、QA evidence、verification の代替にはなりません。ターン数カウンターは持たないため、session 再開・compact・並行実行でも同じ event 契約で動作します。
+- `SessionStart`: intent-driven workflow の想起 context を再注入します。
+- `PreToolUse`: 恒久削除 (`rm` / `git rm` と代表的な迂回路)・秘密ファイル操作・恒久記録の archive 移動をブロックします。ブロック文には禁止理由と次の行動が書かれています。
+- `Stop`: ループ関連ファイルに未コミット変更があるときだけ、「ドキュメントは実態に追いついていますか？」と一言だけ確認します。対応済み・該当なしなら無視して終了できます。未対応があっても作業は始めず、一言伝えて本筋の次の指示で処理します。
 
 初回利用時は各 agent の `/hooks` で内容を確認し、信頼してください。不要な場合は、hook 設定を無効化または削除してから使います。
 
@@ -104,19 +101,19 @@ hook は Risk を自動確定しません。文書要件が適用され得るこ
 ### Codex
 
 ```text
-AGENTS.md、TODO.md、_docs/documentation_guide.md、_docs/standards/ を読んで、このリポジトリのドキュメント駆動開発ルールを把握してください。まず TODO.md の Backlog を確認し、最初に着手すべき小さなタスクを提案してください。
+AGENTS.md、TODO.md、_docs/documentation_guide.md、_docs/standards/ を読んで、このリポジトリの intent-driven development ルールを把握してください。まず TODO.md の Backlog を確認し、最初に着手すべき小さなタスクを提案してください。
 ```
 
 ```text
-qa-prepを実行して、対象タスクのDECごとのWhyとChange freedomを確認し、必要な場合だけintent-derived invariantを作ってtest matrixへ割り当ててください。
+qa-prepを実行して、対象タスクのqa.mdをplannedで作成し、AC と Checks を書いてください。影響するDECのWhyとChange freedomも確認してください。
 ```
 
 ```text
-実装後、qa-reviewを実行してverification verdictを出してください。
+実装後、qa-reviewを実行してQA roundを記録し、Intent Deltaとverdictを出してください。
 ```
 
 ```text
-docs-inventoryを実行して、TODO、intent、QA、guide、reference、draft/plan/surveyの棚卸しをしてください。自動整理はせず、次に判断すべき点を1-3件に絞ってください。
+docs-inventoryを実行して、TODO、intent、QA、未批准candidate、legacy文書の棚卸しをしてください。自動整理はせず、次に判断すべき点を1-3件に絞ってください。
 ```
 
 ```text
@@ -132,7 +129,7 @@ Read AGENTS.md, TODO.md, and _docs/documentation_guide.md first. Follow the docu
 ### Generic Agent
 
 ```text
-Use TODO.md as the task source of truth. For Size >= M or Risk >= Medium tasks, require Plan / Intent / QA test-plan. Keep intent and QA documents permanent, archive only draft/plan/survey after the archive checklist, and remove completed tasks from TODO.md only after verification.
+Use TODO.md as the task source of truth. Every change must end with a QA round declaring an Intent Delta (new DEC / applied: DEC-xxx / None: <reason>). Size >= M requires a Plan; Risk >= Medium requires qa.md created before implementation. Keep intent and QA documents permanent, archive only completed Plans, use pointer-only code comments, and remove completed tasks from TODO.md only with a PASS verdict.
 ```
 
 ## 4. 最初に完了すべき TODO
@@ -154,6 +151,8 @@ deno run --allow-read scripts/validate-todo.ts
 deno run --allow-read --allow-env --allow-run=git scripts/validate-doc-links.ts
 deno run --allow-read --allow-env --allow-run=git scripts/validate-intent.ts
 deno run --allow-read --allow-env --allow-run=git scripts/validate-qa.ts
+deno run --allow-read --allow-env --allow-run=git scripts/validate-comments.ts
+deno run --allow-read --allow-env --allow-run=git scripts/validate-intent-delta.ts
 deno run --allow-read --allow-write --allow-env --allow-run scripts/test-validators.ts
 deno run --allow-read --allow-run=git scripts/test-agent-workflow-hook.ts
 deno run --allow-read scripts/test-agent-workflow-smoke.ts
