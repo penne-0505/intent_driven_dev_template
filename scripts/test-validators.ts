@@ -1,6 +1,6 @@
 // Deno validator self-test runner: exercises valid and intentionally invalid fixtures.
 
-type ValidatorKind = "todo" | "intent" | "qa" | "frontmatter";
+type ValidatorKind = "todo" | "intent" | "qa" | "frontmatter" | "comments";
 
 type TestCaseParams = {
   kind: ValidatorKind;
@@ -61,6 +61,13 @@ const FRONTMATTER_INVALID = [
   "_meta/validator-fixtures/frontmatter/invalid/intent-schema-on-qa.md",
   "_meta/validator-fixtures/frontmatter/invalid/qa-schema-on-intent.md",
 ] as const;
+const COMMENTS_VALID = [
+  "_meta/validator-fixtures/comments/valid/allowed.ts",
+] as const;
+const COMMENTS_INVALID = [
+  "_meta/validator-fixtures/comments/invalid/prose.ts",
+  "_meta/validator-fixtures/comments/invalid/broken-pointer.ts",
+] as const;
 
 const deno = Deno.execPath();
 
@@ -97,6 +104,15 @@ const validatorArgs = (kind: ValidatorKind, target: string): string[] => {
       "--allow-read",
       "scripts/validate-intent.ts",
       "--fixture",
+      target,
+    ];
+  }
+  if (kind === "comments") {
+    return [
+      "run",
+      "--allow-read",
+      "--allow-env",
+      "scripts/validate-comments.ts",
       target,
     ];
   }
@@ -413,6 +429,12 @@ for (const target of FRONTMATTER_VALID) {
 }
 for (const target of FRONTMATTER_INVALID) {
   ok = await testCase({ kind: "frontmatter", target, shouldPass: false }) && ok;
+}
+for (const target of COMMENTS_VALID) {
+  ok = await testCase({ kind: "comments", target, shouldPass: true }) && ok;
+}
+for (const target of COMMENTS_INVALID) {
+  ok = await testCase({ kind: "comments", target, shouldPass: false }) && ok;
 }
 
 // 対象外パスのみを scope に置くと、invalid fixture は判定されずに pass する。
