@@ -57,10 +57,7 @@ const templateLockExample = await json("docs-template.lock.example.json") as {
   revision?: { tag?: string; commit?: string };
 };
 const intentTemplate = await read("_docs/standards/templates/intent.md");
-const qaTemplate = await read("_docs/standards/templates/qa-test-plan.md");
-const qaVerificationTemplate = await read(
-  "_docs/standards/templates/qa-verification.md",
-);
+const qaTemplate = await read("_docs/standards/templates/qa.md");
 const qualityStandard = await read("_docs/standards/quality_assurance.md");
 const agentsPostImplementation = await read(
   ".agents/skills/post-implementation/SKILL.md",
@@ -230,33 +227,27 @@ assert(
 assert(
   contains(
     intentTemplate,
-    "intent_schema: 2",
-    "### DEC-001:",
+    "intent_schema: 3",
+    "### DEC-XXX:",
     "**Why**:",
     "**Change freedom**:",
+    "リポジトリ全体で一意",
   ),
-  "intent template requires why-first DEC records",
+  "intent template requires why-first DEC records with repo-unique IDs",
 );
 
 assert(
   contains(
     qaTemplate,
-    "qa_schema: 3",
-    "## Decision Review Scope",
-    "## Intent-derived Invariants",
-    "None",
-  ),
-  "QA template reviews DEC records and permits zero invariants",
-);
-
-assert(
-  contains(
-    qaVerificationTemplate,
-    "qa_schema: 3",
-    "## Transferable Principles",
+    "qa_schema: 4",
+    "## Acceptance Criteria",
+    "## Checks",
+    "## Rounds",
+    "Intent Delta",
+    "Transferable Principles",
     "None:",
   ),
-  "QA verification template carries the session-end reflection contract",
+  "unified QA template carries checks, rounds, intent delta, and reflection",
 );
 
 assert(
