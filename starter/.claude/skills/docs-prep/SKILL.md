@@ -1,110 +1,46 @@
 ---
 name: docs-prep
-description: Use after implementation-prep when the change is Size >= M, Risk >= Medium, or requires design decisions.
+description: Use after implementation-prep when the change is Size >= M or introduces design decisions that need a Plan.
 ---
 
 # Documentation Preparation
 
-This skill prepares canonical documentation before substantial implementation work.
+This skill prepares the Plan (and intent scaffolding) for large work. For `Size < M`,
+skip it — the TODO's AC / Steps are the plan, and decisions get recorded as DECs
+when they emerge during implementation.
 
 ## When to Use
 
-Use this skill for:
+- `Size >= M` (Plan is mandatory)
+- Breaking changes or migrations that need Scope / Non-Goals / Rollout thinking
 
-- `Size >= M`
-- `Risk >= Medium`
-- Architecture decisions
-- Intentional omissions that future maintainers could mistake for missing work
-- Breaking changes or migrations
-- Complex refactors
-- Agent workflow / validator / CI / Skill / documentation rule changes
+## Workflow
 
-For `Size XS/S` and `Risk Low`, use `implementation-prep` alone unless a design decision or intentional omission risk must be recorded beyond TODO / PR / commit notes.
+### 1. Create or Update the Plan
 
-## Documentation Workflow
+Location: `_docs/plan/<Area>/<slug>/plan.md` — Overview / Scope / Non-Goals / Requirements /
+Tasks / QA Plan / Deployment. The Plan is coordination material; its why-content will be
+distilled into DECs. Use root-relative references.
 
-### 1. Determine Scope
+### 2. Intent scaffolding
 
-| Condition | Required Documents |
-| --- | --- |
-| `Size >= M` | Plan, Intent, QA test-plan |
-| `Risk >= Medium` | Intent, QA test-plan |
-| `Risk High / Critical` | Plan, Intent, QA test-plan, verification before completion |
-| Bug with regression risk | QA regression check or no-test rationale |
-| Refactor | behavior-preservation checks |
-| Intentional omission risk affecting future work | Intent, or Plan Non-Goals when a plan already exists |
-| Agent workflow / validator / CI / Skill change | agent misbehavior checks |
+If the design already contains committed decisions, record them as DECs now
+(`_docs/intent/<Area>/<slug>/decision.md`, `intent_schema: 3`, repository-unique IDs —
+allocate max existing ID + 1). Decisions that emerge later are recorded when they emerge;
+the Intent Delta in the QA round keeps them from being silently dropped.
 
-### 2. Create or Update Plan
+Intent documents record why / why not / change freedom. Do not restate current values or
+reproduce mechanism detail the code itself shows.
 
-Location: `_docs/plan/<Area>/<slug>/plan.md`
+### 3. QA
 
-Plan documents should include:
+Run `qa-prep` to create `_docs/qa/<Area>/<slug>/qa.md` with `qa_status: planned`.
 
-- Overview
-- Scope
-- Non-Goals
-- Requirements
-- Tasks
-- QA Plan
-- Deployment / Rollout
+### 4. TODO
 
-Use root-relative references:
+Update the task's `Plan` / `Intent` / `QA` fields with canonical paths.
 
-```yaml
-references:
-  - "_docs/intent/Core/feature-x/decision.md"
-  - "_docs/qa/Core/feature-x/test-plan.md"
-```
+## Lifecycle
 
-### 3. Create or Update Intent
-
-Location: `_docs/intent/<Area>/<slug>/decision.md`
-
-Intent documents should include:
-
-- `intent_schema: 2`
-- Context
-- Decisions with stable `DEC-001` style IDs
-- `What`, `Why`, and `Change freedom` for each decision
-- `Why not` and `Revisit when` only when they add real information
-- Consequences / Impact
-- Quality Implications
-- Intent-derived Invariants only when a condition must remain true across every valid implementation; `None` is normal
-
-Intent documents are permanent rationale records. They constrain future work by
-the recorded why and required outcome, not by freezing the current mechanism.
-Do not archive intent documents.
-
-### 4. Create QA Test Plan
-
-When creating Plan / Intent for `Size >= M` or `Risk >= Medium`, also run `qa-prep` and create:
-
-```text
-_docs/qa/<Area>/<slug>/test-plan.md
-```
-
-New QA documents use `qa_schema: 3`, review affected `DEC-*` entries, and may
-record `None` when the Intent defines no invariant.
-
-Ensure QA references root-relative canonical paths.
-
-## Integration with Implementation
-
-1. Before coding, confirm Plan / Intent / QA requirements.
-2. During implementation, update docs when decisions change.
-3. After implementation, run `post-implementation`; for substantial documented work, also run `docs-cleanup`.
-
-## Deliverables
-
-- Plan document when required.
-- Intent document when required.
-- QA test-plan when required.
-- TODO fields updated with canonical paths.
-- Front-matter complete with current dates.
-
-## References
-
-- `_docs/standards/documentation_guidelines.md`
-- `_docs/standards/documentation_operations.md`
-- `_docs/standards/quality_assurance.md`
+After the task completes, the Plan is moved to `_docs/archives/plan/<Area>/<slug>/` with
+`git mv` and references are updated. Intent and QA documents are permanent and never move.

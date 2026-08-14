@@ -1,70 +1,37 @@
 ---
 name: qa-prep
-description: Use before or during implementation to create a QA test plan from TODO, Plan, and Intent.
+description: Use before or during implementation to start the unified qa.md from TODO, Plan, and Intent.
 ---
 
 # QA Preparation
 
-This skill converts design intent into testable quality conditions before implementation goes too far.
+This skill starts the unified QA document (`qa_schema: 4`) before implementation goes too far.
+Planning and verification live in one file; starting early is the "depth" that risk buys.
 
 ## Trigger Conditions
 
-Use this skill for:
-
-- `Size >= M`
-- `Risk >= Medium`
-- Bug tasks with regression risk
-- Refactors that need behavior-preservation checks
-- Intentional omissions recorded as design decisions
+- `Risk >= Medium` (mandatory: qa.md must exist with `qa_status: planned` before coding)
+- `Size >= M` (the dedicated qa.md accompanies the Plan)
 - Security / auth / privacy / payment / data safety / migration changes
-- CI / validator / Skill / agent workflow / documentation rule changes
+- Changes under `scripts/`, `.github/`, `_docs/standards/`, agent configs, or AGENTS.md
+  (path-based `Risk High` floor applies)
 
 ## Required Procedure
 
-1. Read the TODO task.
-2. Read the Plan.
-3. Read the Intent.
-4. Extract the affected `DEC-*` decisions and their rationale.
-5. Confirm or strengthen Acceptance Criteria.
-6. Create `INV-*` only for conditions that every valid implementation must preserve; otherwise record `None`.
-7. Write Risk Assessment.
-8. Build the Test Matrix.
-9. Assign every AC and applicable INV to automated tests, manual QA, validator, static check, or diff review.
-10. Create or update `_docs/qa/<Area>/<slug>/test-plan.md`.
-11. Update the TODO task's `QA:` field.
+1. Read the TODO task, the Plan (if any), and the governing DECs.
+2. Create `_docs/qa/<Area>/<slug>/qa.md` from `_docs/standards/templates/qa.md` with
+   `qa_status: planned`.
+3. Write Acceptance Criteria (synced with TODO) and the Checks table: every core AC and
+   applicable INV gets a check type (automated test / validator / manual / diff review).
+4. For `Risk High / Critical`, include rollback / recovery / data safety / security checks.
+5. For Bug tasks plan a regression test or a no-test rationale; for Refactor tasks plan
+   behavior-preservation checks; for workflow changes plan agent misbehavior checks.
+6. Update the TODO task's `QA:` field.
 
 ## Rules
 
-- Do not make a test plan that only mirrors implementation details.
+- Checks are written before implementation and are not rewritten to match outcomes afterwards —
+  results go into appended Rounds.
+- Do not turn current values, algorithms, or file layouts into check contracts unless a DEC
+  says the exact value is the contract.
 - Do not push everything into manual QA when automated checks are feasible.
-- If a check is deferred, write the reason.
-- For High / Critical risk, include rollback / recovery / data safety / security checks.
-- For agent workflow changes, include agent misbehavior checks.
-
-## Output
-
-The QA test plan must include:
-
-- `qa_schema: 3`
-- Source of Intent
-- Decision Review Scope with affected `DEC-*` IDs
-- Quality Goal
-- Acceptance Criteria
-- Intent-derived Invariants, or `None`
-- Risk Assessment
-- Test Strategy
-- Test Matrix
-- Manual QA Checklist
-- Regression Checklist
-- Out of Scope
-- Open Questions
-
-## Example Test Matrix Rows
-
-| ID | Source | Requirement / Invariant | Test Type | Command / File | Expected Evidence | Status |
-|---|---|---|---|---|---|---|
-| AC-001 | TODO | Size >= M tasks require Plan / Intent / QA. | validator | `deno run --allow-read scripts/validate-todo.ts` | Invalid task without QA fails validation. | planned |
-
-Add an `INV-*` row only when the Intent defines that invariant. Do not turn a
-current numeric value, algorithm, or file layout into a test contract merely
-because it appears in the implementation.
