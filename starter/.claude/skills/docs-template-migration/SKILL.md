@@ -1,9 +1,9 @@
 ---
 name: docs-template-migration
-description: Integrate a newer pinned release of this docs-driven template into an existing customized repository. Use after first-time adoption when a recommended upstream tag changes standards, validators, paired skills, hooks, CI, template meta-work, or document schemas. Do not use for first-time adoption or project-local schema edits without an upstream release.
+description: Integrate a newer pinned release of this intent-driven template into an existing customized repository. Use after first-time adoption when a recommended upstream tag changes standards, validators, paired skills, hooks, CI, template meta-work, or document schemas. Do not use for first-time adoption or project-local schema edits without an upstream release.
 ---
 
-# Docs-Driven Template Migration
+# Intent-Driven Template Migration
 
 Treat every update as a provenance-locked three-way migration:
 

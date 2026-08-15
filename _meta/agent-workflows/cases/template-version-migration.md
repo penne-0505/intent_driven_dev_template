@@ -2,7 +2,7 @@
 
 ## Scenario
 
-新しい docs-driven template release を、project 固有の rules、docs、skills、
+新しい intent-driven template release を、project 固有の rules、docs、skills、
 hooks、CI、未コミット作業を持つ既存 repository へ統合する。通常の
 tag-to-tag 更新と、tag / lock / local migration skill がない pre-`v1.0.0`
 repository の bootstrap の両方を扱う。

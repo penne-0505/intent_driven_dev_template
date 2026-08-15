@@ -50,7 +50,7 @@
   1. [ ] Add fixtures.
   2. [ ] Run self-test.
 - **Description**:
-  - Context: Validator behavior is part of the docs-driven workflow contract.
+  - Context: Validator behavior is part of the intent-driven workflow contract.
   - Notes: Medium risk requires Plan / Intent / QA.
 - **Plan**: _docs/plan/Template/validator-fixture-self-test/plan.md
 - **Intent**: _docs/intent/Template/validator-fixture-self-test/decision.md
