@@ -171,10 +171,10 @@ assert(
   templateLockExample.schema === 1 &&
     templateLockExample.source ===
       "https://github.com/penne-0505/intent_driven_dev_template.git" &&
-    templateLockExample.revision?.tag === "v2.1.0" &&
+    templateLockExample.revision?.tag === "v2.2.0" &&
     templateLockExample.revision?.commit ===
       "REPLACE_WITH_THE_TAGS_FULL_40_CHARACTER_COMMIT_SHA",
-  "template lock example identifies the v2.1.0 release and full-SHA placeholder",
+  "template lock example identifies the v2.2.0 release and full-SHA placeholder",
 );
 
 assert(
