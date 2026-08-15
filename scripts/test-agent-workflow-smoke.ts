@@ -57,10 +57,7 @@ const templateLockExample = await json("docs-template.lock.example.json") as {
   revision?: { tag?: string; commit?: string };
 };
 const intentTemplate = await read("_docs/standards/templates/intent.md");
-const qaTemplate = await read("_docs/standards/templates/qa-test-plan.md");
-const qaVerificationTemplate = await read(
-  "_docs/standards/templates/qa-verification.md",
-);
+const qaTemplate = await read("_docs/standards/templates/qa.md");
 const qualityStandard = await read("_docs/standards/quality_assurance.md");
 const agentsPostImplementation = await read(
   ".agents/skills/post-implementation/SKILL.md",
@@ -79,17 +76,17 @@ const hookEvents = (config: HookConfig): string[] =>
   Object.keys(config.hooks ?? {});
 
 assert(
-  ["SessionStart", "UserPromptSubmit", "PreToolUse", "Stop"].every((event) =>
+  ["SessionStart", "PreToolUse", "Stop"].every((event) =>
     hookEvents(codexHooks).includes(event)
-  ),
-  "Codex hooks include SessionStart, UserPromptSubmit, PreToolUse, and Stop",
+  ) && !hookEvents(codexHooks).includes("UserPromptSubmit"),
+  "Codex hooks include SessionStart, PreToolUse, Stop and drop the per-prompt injection",
 );
 
 assert(
-  ["SessionStart", "UserPromptSubmit", "PreToolUse", "Stop"].every((event) =>
+  ["SessionStart", "PreToolUse", "Stop"].every((event) =>
     hookEvents(claudeSettings).includes(event)
-  ),
-  "Claude hooks include SessionStart, UserPromptSubmit, PreToolUse, and Stop",
+  ) && !hookEvents(claudeSettings).includes("UserPromptSubmit"),
+  "Claude hooks include SessionStart, PreToolUse, Stop and drop the per-prompt injection",
 );
 
 assert(
@@ -116,12 +113,11 @@ assert(
 assert(
   contains(
     agentHook,
-    "plausible counterevidence",
-    "non-local effects",
-    "long-term maintainability",
-    "silently expanding scope",
-  ),
-  "AC-001 AC-002 self-audit covers evidence, system impact, durability, and scope",
+    "無視して",
+    "作業を始めないでください",
+    "本筋の次の指示",
+  ) && !contains(agentHook, "counterevidence"),
+  "stop reminder is ignorable, defers work, and drops keyword-compliance audits",
 );
 
 assert(
@@ -182,11 +178,11 @@ assert(
 assert(
   templateLockExample.schema === 1 &&
     templateLockExample.source ===
-      "https://github.com/penne-0505/docs_driven_dev_template.git" &&
-    templateLockExample.revision?.tag === "v1.3.1" &&
+      "https://github.com/penne-0505/intent_driven_dev_template.git" &&
+    templateLockExample.revision?.tag === "v1.4.0" &&
     templateLockExample.revision?.commit ===
       "REPLACE_WITH_THE_TAGS_FULL_40_CHARACTER_COMMIT_SHA",
-  "template lock example identifies the v1.3.1 release and full-SHA placeholder",
+  "template lock example identifies the v1.4.0 release and full-SHA placeholder",
 );
 
 assert(
@@ -230,33 +226,27 @@ assert(
 assert(
   contains(
     intentTemplate,
-    "intent_schema: 2",
-    "### DEC-001:",
+    "intent_schema: 3",
+    "### DEC-XXX:",
     "**Why**:",
     "**Change freedom**:",
+    "リポジトリ全体で一意",
   ),
-  "intent template requires why-first DEC records",
+  "intent template requires why-first DEC records with repo-unique IDs",
 );
 
 assert(
   contains(
     qaTemplate,
-    "qa_schema: 3",
-    "## Decision Review Scope",
-    "## Intent-derived Invariants",
-    "None",
-  ),
-  "QA template reviews DEC records and permits zero invariants",
-);
-
-assert(
-  contains(
-    qaVerificationTemplate,
-    "qa_schema: 3",
-    "## Transferable Principles",
+    "qa_schema: 4",
+    "## Acceptance Criteria",
+    "## Checks",
+    "## Rounds",
+    "Intent Delta",
+    "Transferable Principles",
     "None:",
   ),
-  "QA verification template carries the session-end reflection contract",
+  "unified QA template carries checks, rounds, intent delta, and reflection",
 );
 
 assert(

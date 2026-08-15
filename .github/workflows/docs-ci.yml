@@ -15,27 +15,16 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Markdownlint
-        uses: DavidAnson/markdownlint-cli2-action@v16
-        with:
-          globs: |
-            _docs/**/*.md
-            _evals/**/*.md
-            starter/**/*.md
-            README.md
-            AGENTS.md
-            TODO.md
-            QUICKSTART.md
-            !_docs/archives/**/*
-            !_docs/standards/templates/**/*
-          config: .markdownlint.jsonc
-
       - name: Setup Deno
         uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
 
       - name: Run documentation validators
+        env:
+          # PR では base との diff に対して intent-delta presence を検査する。
+          # (未初期化 template では starter/ の存在により自動 skip される)
+          DD_DELTA_BASE: ${{ github.event.pull_request.base.sha || '' }}
         run: ./scripts/check-docs.sh
 
   # 出荷物の妥当性は、未初期化の repository ではなく展開後の姿でしか判定できない。

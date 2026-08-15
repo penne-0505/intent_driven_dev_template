@@ -20,6 +20,13 @@ deno run --allow-read scripts/validate-todo.ts "$todo_file"
 deno run --allow-read --allow-env --allow-run=git scripts/validate-doc-links.ts
 deno run --allow-read --allow-env --allow-run=git scripts/validate-intent.ts
 deno run --allow-read --allow-env --allow-run=git scripts/validate-qa.ts
+deno run --allow-read --allow-env --allow-run=git scripts/validate-comments.ts
+
+# intent-delta presence は展開後の利用者 project の規範。未初期化 template
+# (starter/ が存在) は meta-work 例外により対象外。
+if [ ! -d "starter" ]; then
+  deno run --allow-read --allow-env --allow-run=git scripts/validate-intent-delta.ts
+fi
 deno run --allow-read --allow-write --allow-env --allow-run scripts/test-validators.ts
 deno run --allow-read --allow-write --allow-env --allow-run scripts/test-agent-workflow-hook.ts
 deno run --allow-read scripts/test-agent-workflow-smoke.ts

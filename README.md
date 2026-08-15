@@ -1,18 +1,24 @@
-# Documentation Driven Development Template
+# Intent Driven Development Template
 
 > This README is available in English and Japanese. English speakers, please scroll down.
 
 ## 概要
 
-このリポジトリは私が常用しているドキュメント駆動開発 *(Documentation Driven Development)* のテンプレートです。
+このリポジトリは intent-driven development *(意図駆動開発)* のテンプレートです。
 
-開発サイクルはドキュメントと [TODO.md](TODO.md) によって構成されています。
+コーディングエージェントによる開発の最大の問題は一貫性の欠如であり、その原因は意図
+(why / why not) の不足です。このテンプレートは、実装の意図を記録・参照・検証することを
+開発サイクルの中心に置きます。ドキュメントは意図を運ぶ媒体であり、想定読者は毎回
+コンテクストが分離された状態で作業を始める coding agent です。
 
-このテンプレートは `intent` を、コードを固定する規則ではなく、将来の変更者が設計判断の Why / Why not と変更可能範囲を再構成するための一次資料として扱います。中規模以上、またはリスクのある変更では `_docs/qa/` に QA test-plan と verification を残し、テストを acceptance criteria と、該当する場合だけ intent-derived invariant に紐づけます。`_docs/qa/` はテストコードの置き場ではなく、計画・対応表・検証証跡の置き場です。
+- **すべての変更**が最小ループを回ります: `TODO (AC) → 実装 → Intent Delta の宣言 → QA round の記録`。省略できるのは深さであって、存在ではありません。
+- 設計判断はリポジトリ一意の ID を持つ `DEC` として `_docs/intent/` に記録され、コードからは `// intent: DEC-xxx — <理由>` のポインタコメントだけで到達します。散文コメントは validator が禁止します。
+- QA は計画と検証記録が一体の `qa.md` 一種類で、微小変更は Area ごとの集約ファイルに数行の round を追記するだけです。
+- 品質は機械 (validator が構造を強制) と agent review (R1 妥当性 / R2 再構成テスト) が担い、人間は標準の改訂と原則の批准だけを行います。
 
 人がサイクルを回すことも出来ますが、基本的には**Claude Codeなどのコーディングエージェント**が、この規則に従って自律的な開発を行うために設計されました。
 
-**詳細については [ガイドライン](_docs/documentation_guide.md) を参照してください。**
+**詳細については [ガイドライン](_docs/documentation_guide.md) と [quality assurance standard](_docs/standards/quality_assurance.md) を参照してください。**
 
 初めて使う場合は、まず [Quickstart](QUICKSTART.md) を読んでください。
 
@@ -25,33 +31,24 @@
 
 配布用 ZIP を作る場合は、`.git` / `.jj` などの VCS メタデータを含めないために、GitHub 標準アーカイブまたは `scripts/create-template-archive.sh` を使用してください。
 
-ローカルでドキュメント検証をまとめて実行する場合は、`scripts/check-docs.sh` を使います。
+ローカルでドキュメント検証をまとめて実行する場合は、`scripts/check-docs.sh` を使います。CI も同一 script を通します。
 
-既存プロジェクトへ後付け導入する場合は、`DD_SCOPE_BASE` に導入時点の commit を設定して、既定では「導入以降に追加した docs だけ」を検証対象に絞れます。編集した既存 docs も対象にしたい場合は `DD_SCOPE_DIFF_FILTER=ACMR` を使います。設定方法は [Quickstart](QUICKSTART.md) と [documentation_operations.md](_docs/standards/documentation_operations.md) を参照してください。
+既存プロジェクトへ後付け導入する場合は、`DD_SCOPE_BASE` に導入時点の commit を設定して、既定では「導入以降に追加した docs だけ」を検証対象に絞れます。設定方法は [Quickstart](QUICKSTART.md) と [documentation_operations.md](_docs/standards/documentation_operations.md) を参照してください。
 
-導入後も template の更新を取り込む場合は、推奨 release tag とその full SHA を `docs-template.lock.json` に記録し、[`docs-template-migration`](.agents/skills/docs-template-migration/SKILL.md) skill で既存のカスタマイズを保全しながら three-way migration を行います。`v1.0.0` より前の導入先は、導入元 commit を一度だけ復元してから、`v1.0.0` 以降の任意の推奨 tag へ直接移行できます。これは `DD_SCOPE_BASE` とは別の provenance 契約です。
+導入後も template の更新を取り込む場合は、推奨 release tag とその full SHA を `docs-template.lock.json` に記録し、[`docs-template-migration`](.agents/skills/docs-template-migration/SKILL.md) skill で既存のカスタマイズを保全しながら three-way migration を行います。
 
-Codex / Claude Code 向けの lifecycle hook を同梱しています。hook は docs や TODO を自動更新しません。SessionStart で workflow context、UserPromptSubmit で仮説・反証・Scope の短い再確認を注入します。PreToolUse では、書き込み前に根本原因・非局所影響・恒久性・互換性の根拠を確認し、workflow-sensitive path が対象なら Risk High 相当の文書要件が適用され得ることを実装前に知らせ、代表的な恒久削除や sensitive file 操作を止めます。Stop は、検証・複数観点の自己監査・整理・archive 境界の見落としに加え、workflow-sensitive な変更に intent / QA の変更が伴っているかを確認する guardrail です。Risk の確定は hook ではなく作業者が行います。利用時は各 agent の `/hooks` で内容を確認して信頼してください。
+Codex / Claude Code 向けの lifecycle hook を同梱しています。hook は optional な増幅であり、規範の代替ではありません（規範は Markdown 層に、機械強制は Deno validator にあります）。SessionStart はワークフローの想起、PreToolUse は恒久削除・秘密ファイル操作の安全ブロック、Stop はループ関連の未コミット変更があるときの一言想起のみを行います。利用時は各 agent の `/hooks` で内容を確認して信頼してください。
 
-久しぶりの再開や handoff 探索では、`docs-inventory` skill が TODO、intent、QA、guide、reference、一時 docs の棚卸しを行います。これは read-only の診断であり、整理や archive 実行は `docs-cleanup` の役割です。
+久しぶりの再開や handoff 探索では、`docs-inventory` skill が TODO、intent、QA、未批准 candidate、legacy 文書の棚卸しを行います。
 
-root 直下の Markdown は agent 向けの active guidance として扱われます。一回限りの実装プロンプトを履歴として残す場合は `_evals/prompts/` などへ移し、非運用文書であることを明記してください。
-
-### カスタマイズ
+## カスタマイズ
 
 使用に当たっては、以下のファイルをプロジェクトに合わせてカスタマイズしてください。
 
-#### AGENTS.md
-
-プロジェクト固有の実行コマンド、安全基準、hook / skill の利用方針に合わせて確認・編集してください。
-
-#### README.md
-
-このREADME自体も、プロジェクトに合わせて編集してください。
-
-#### LICENSE.txt
-
-[LICENSE](LICENSE.txt)についても、特に著作者の表示を編集してください。
+- **AGENTS.md**: プロジェクト固有の実行コマンド、安全基準に合わせて確認・編集してください。
+- **README.md**: このREADME自体も、プロジェクトに合わせて編集してください。
+- **LICENSE.txt**: 特に著作者の表示を編集してください。
+- **docs-validators.json** (任意): ライブラリとして API doc comment を配布する場合の opt-out など、validator の設定を宣言できます。
 
 ## ライセンス
 
@@ -61,15 +58,22 @@ root 直下の Markdown は agent 向けの active guidance として扱われ�
 
 ## Summary
 
-This repository is a template for Documentation Driven Development that I commonly use.
+This repository is a template for intent-driven development.
 
-The development cycle is structured around documentation and [TODO.md](TODO.md).
+The core failure mode of agent-driven coding is loss of consistency, and its cause is missing
+intent (the why / why not behind implementations). This template puts recording, referencing,
+and verifying intent at the center of the development cycle. Documents are the medium that
+carries intent; the primary reader is a coding agent that starts every session with a fresh
+context.
 
-This template treats `intent` documents as the primary record of a decision's Why, Why not, and change freedom—not as rules that freeze the current code. Medium-sized or risky changes keep a QA test plan and verification record under `_docs/qa/`, and tests should map to acceptance criteria plus any genuinely durable intent-derived invariants. `_docs/qa/` is for plans, traceability, and evidence; test code belongs in the codebase's normal test locations.
+- **Every change** runs the minimal loop: `TODO (AC) → implement → declare the Intent Delta → record a QA round`. Only depth varies; presence does not.
+- Design decisions are recorded as `DEC` entries with repository-unique IDs under `_docs/intent/`, reachable from code exclusively through pointer comments (`// intent: DEC-xxx — <reason>`). Prose comments are rejected by a validator.
+- QA planning and verification live in one `qa.md` per feature; small changes append a few-line round to a per-area rolling file.
+- Quality is held by machines (validators enforce structure) and agent review (R1 validity / R2 reconstruction test); humans only revise the standards and ratify cross-cutting principles.
 
 While humans can run the cycle, it is primarily designed **for coding agents like Claude Code** to autonomously develop according to these rules.
 
-**For more details, please refer to the [Guidelines](_docs/documentation_guide.md).**
+**For details, see the [guide](_docs/documentation_guide.md) and the [quality assurance standard](_docs/standards/quality_assurance.md).**
 
 If this is your first time using the template, start with the [Quickstart](QUICKSTART.md).
 
@@ -80,35 +84,12 @@ If this is your first time using the template, start with the [Quickstart](QUICK
 3. Edit the documentation and configuration files to suit your project.
 4. Start development.
 
-When creating a distribution ZIP, use GitHub's standard archive or `scripts/create-template-archive.sh` so VCS metadata such as `.git` / `.jj` is not included.
+Use `scripts/check-docs.sh` to run the local documentation validators together; CI runs the same script.
 
-Use `scripts/check-docs.sh` to run the local documentation validators together.
+When adopting this template in an existing project, set `DD_SCOPE_BASE` to the adoption commit so that, by default, only docs added after adoption are validated. To keep an adopted project current with later template releases, record the recommended release tag and its full SHA in `docs-template.lock.json`, then use the [`docs-template-migration`](.agents/skills/docs-template-migration/SKILL.md) skill.
 
-When adopting this template in an existing project, set `DD_SCOPE_BASE` to the adoption commit. By default, only docs added after adoption are validated. Set `DD_SCOPE_DIFF_FILTER=ACMR` if edited existing docs should also become managed. See the [Quickstart](QUICKSTART.md) and [documentation_operations.md](_docs/standards/documentation_operations.md) for setup.
-
-To keep an adopted project current with later template releases, record the recommended release tag and its full SHA in `docs-template.lock.json`, then use the [`docs-template-migration`](.agents/skills/docs-template-migration/SKILL.md) skill to perform a three-way migration without overwriting project customizations. Projects adopted before `v1.0.0` can reconstruct their original template commit once and migrate directly to any recommended `v1.0.0` or later tag. This provenance lock is separate from `DD_SCOPE_BASE`.
-
-Lifecycle hooks for Codex and Claude Code are included. They do not update docs or TODOs automatically. SessionStart reinjects workflow context, and UserPromptSubmit adds a short check of the current hypothesis, counterevidence, and scope. Before writes, PreToolUse asks for root-cause evidence, non-local effects, durability, and an explicit compatibility rationale, reports the Risk High document chain when the target is workflow-sensitive, and blocks representative permanent-deletion or sensitive-file operations. Stop checks for verification, a multi-perspective self-audit, cleanup, archive-boundary evidence, and whether workflow-sensitive changes are accompanied by intent or QA changes. The hook never settles the Risk classification for you. Review and trust them through each agent's `/hooks` UI before use.
-
-For project resumes or handoff discovery, the `docs-inventory` skill audits TODO, intent, QA, guide, reference, and temporary docs. It is a read-only diagnosis; cleanup and archive execution belong to `docs-cleanup`.
-
-Root-level Markdown is treated as active guidance for agents. If you keep a one-off implementation prompt for history, move it under `_evals/prompts/` or another historical location and mark it as non-operational.
-
-### Customization
-
-When using this template, please customize the following files to fit your project.
-
-#### AGENTS.md
-
-Review and edit this file to match project-specific commands, safety rules, and hook / skill usage expectations.
-
-#### README.md
-
-Feel free to edit this README itself to suit your project.
-
-#### LICENSE.txt
-
-Please edit the [LICENSE](LICENSE.txt) file, particularly the author attribution.
+Lifecycle hooks for Codex and Claude Code are included as optional amplifiers, never as the norm itself (norms live in Markdown, machine enforcement in Deno validators): SessionStart reinjects the workflow, PreToolUse blocks permanent deletion and credential-file access, and Stop asks a single ignorable question when loop-relevant uncommitted changes exist. Review and trust them through each agent's `/hooks` UI before use.
 
 ## License
+
 This repository is licensed under the [MIT License](LICENSE.txt).

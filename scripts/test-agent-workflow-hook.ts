@@ -1,8 +1,6 @@
 import {
   analyzePreToolUse,
   analyzeStop,
-  analyzeUserPromptSubmit,
-  auditEvidenceCount,
   isWorkflowSensitivePath,
   parsePorcelainPaths,
 } from "./agent-workflow-hook.ts";
@@ -21,29 +19,21 @@ assert(
   "parse git porcelain paths",
 );
 
-const userPromptResult = analyzeUserPromptSubmit();
 assert(
-  userPromptResult.decision === "context" &&
-    userPromptResult.context.includes("plausible counterevidence") &&
-    userPromptResult.context.includes("Scope") &&
-    userPromptResult.context.length < 240,
-  "AC-001 INV-001 keep per-prompt audit short and evidence-based",
+  isWorkflowSensitivePath("AGENTS.md") &&
+    isWorkflowSensitivePath("./_docs/standards/quality_assurance.md") &&
+    isWorkflowSensitivePath(".claude/settings.json") &&
+    !isWorkflowSensitivePath("README.md") &&
+    !isWorkflowSensitivePath("_docs/qa/Workflow/x/qa.md"),
+  "single workflow-sensitive predicate",
 );
 
-const patchAudit = analyzePreToolUse({
-  tool_name: "apply_patch",
-  tool_input: { command: "*** Begin Patch\n*** Update File: README.md\n" },
-});
-const writeAudit = analyzePreToolUse({
-  tool_name: "Write",
-  tool_input: { file_path: "src/example.ts" },
-});
 assert(
-  patchAudit?.decision === "context" &&
-    patchAudit.context.includes("root cause") &&
-    writeAudit?.decision === "context" &&
-    writeAudit.context.includes("silently expanding scope"),
-  "AC-002 INV-002 add durable write audit context",
+  analyzePreToolUse({
+    tool_name: "Write",
+    tool_input: { file_path: "src/example.ts" },
+  }) === null,
+  "ordinary writes pass without injected context (no per-write sermon)",
 );
 
 assert(
@@ -51,64 +41,18 @@ assert(
     tool_name: "Read",
     tool_input: { file_path: "README.md" },
   }) === null,
-  "INV-002 avoid write audit noise on read-only tools",
+  "read-only tools pass silently",
 );
 
-const workflowWriteAudit = analyzePreToolUse({
-  tool_name: "Write",
-  tool_input: { file_path: ".github/workflows/docs-ci.yml" },
+const gitRmBlock = analyzePreToolUse({
+  tool_name: "Bash",
+  tool_input: { command: "git rm _docs/qa/Core/x/qa.md" },
 });
 assert(
-  workflowWriteAudit?.decision === "context" &&
-    workflowWriteAudit.context.includes("workflow-sensitive") &&
-    workflowWriteAudit.context.includes("Risk High") &&
-    workflowWriteAudit.context.includes("quality_assurance.md") &&
-    workflowWriteAudit.context.includes("root cause") &&
-    workflowWriteAudit.context.includes("silently expanding scope"),
-  "AC-005 INV-006 warn about the Risk High document chain before workflow-sensitive writes",
-);
-
-assert(
-  workflowWriteAudit?.decision === "context" &&
-    workflowWriteAudit.context.includes("Judge the actual Risk yourself") &&
-    workflowWriteAudit.context.includes("never settles the classification"),
-  "AC-005 INV-006 write-time notice reports the requirement without settling Risk",
-);
-
-assert(
-  writeAudit?.decision === "context" &&
-    !writeAudit.context.includes("workflow-sensitive"),
-  "AC-005 INV-006 keep ordinary source writes free of the workflow-sensitive notice",
-);
-
-const patchWorkflowAudit = analyzePreToolUse({
-  tool_name: "apply_patch",
-  tool_input: {
-    command:
-      "*** Begin Patch\n*** Update File: _docs/standards/quality_assurance.md\n",
-  },
-});
-assert(
-  patchWorkflowAudit?.decision === "context" &&
-    patchWorkflowAudit.context.includes("workflow-sensitive"),
-  "AC-005 INV-004 detect workflow-sensitive apply_patch targets like Codex uses",
-);
-
-assert(
-  isWorkflowSensitivePath("AGENTS.md") &&
-    isWorkflowSensitivePath("./_docs/standards/quality_assurance.md") &&
-    isWorkflowSensitivePath(".claude/settings.json") &&
-    !isWorkflowSensitivePath("README.md") &&
-    !isWorkflowSensitivePath("_docs/qa/Workflow/x/test-plan.md"),
-  "AC-005 single workflow-sensitive predicate is shared by write and stop audits",
-);
-
-assert(
-  analyzePreToolUse({
-    tool_name: "Bash",
-    tool_input: { command: "git rm _docs/qa/Core/x/test-plan.md" },
-  })?.decision === "block",
-  "block git rm",
+  gitRmBlock?.decision === "block" &&
+    gitRmBlock.reason.includes("Why:") &&
+    gitRmBlock.reason.includes("Next action:"),
+  "block git rm with why and next action",
 );
 
 assert(
@@ -118,6 +62,25 @@ assert(
   })?.decision === "block",
   "block rm",
 );
+
+for (
+  const bypass of [
+    "/bin/rm file.ts",
+    "command rm file.ts",
+    "xargs rm < list.txt",
+    "find . -name '*.md' -delete",
+    "shred secret.txt",
+    "unlink file.ts",
+  ]
+) {
+  assert(
+    analyzePreToolUse({
+      tool_name: "Bash",
+      tool_input: { command: bypass },
+    })?.decision === "block",
+    `block deletion bypass: ${bypass}`,
+  );
+}
 
 assert(
   analyzePreToolUse({
@@ -136,103 +99,59 @@ assert(
 );
 
 assert(
-  analyzeStop({
-    dirtyPaths: ["TODO.md", ".codex/hooks.json"],
-    input: { last_assistant_message: "対応しました。" },
+  analyzePreToolUse({
+    tool_name: "Bash",
+    tool_input: { command: "cat .env" },
   })?.decision === "block",
-  "stop hook nudges missing closure evidence",
+  "block reading credential files",
 );
 
 assert(
-  analyzeStop({
-    dirtyPaths: ["TODO.md"],
-    input: {
-      last_assistant_message: "対応しました。qa-reviewと検証はPASSです。",
-    },
-  })?.decision === "block",
-  "AC-003 INV-003 stop hook rejects verification without independent audit",
-);
-
-assert(
-  analyzeStop({
-    dirtyPaths: ["TODO.md"],
-    input: {
-      last_assistant_message:
-        "対応しました。qa-reviewと検証はPASSです。反証候補を確認し、影響範囲と長期保守性を再監査しました。残リスクはありません。",
-    },
+  analyzePreToolUse({
+    tool_name: "Bash",
+    tool_input: { command: "cat .env.example" },
   }) === null,
-  "AC-003 INV-003 stop hook allows verification with multi-perspective audit",
+  "allow .env.example (the file the security standard points to)",
 );
 
-assert(
-  auditEvidenceCount("反証を確認し、影響範囲と長期保守性を監査した。") === 3,
-  "INV-003 count distinct audit perspectives",
-);
-
-const fullyWordedClosure =
-  "対応しました。qa-reviewと検証はPASSです。反証候補を確認し、影響範囲と長期保守性を再監査しました。残リスクはありません。";
-
-const workflowWithoutDocs = analyzeStop({
-  dirtyPaths: [".github/workflows/docs-ci.yml", "AGENTS.md"],
-  input: { last_assistant_message: fullyWordedClosure },
+const stopReminder = analyzeStop({
+  dirtyPaths: ["TODO.md", "src/app.ts"],
+  input: {},
 });
+const stopReason = stopReminder?.decision === "block"
+  ? stopReminder.reason
+  : "";
 assert(
-  workflowWithoutDocs?.decision === "block" &&
-    workflowWithoutDocs.reason.includes("_docs/intent/") &&
-    workflowWithoutDocs.reason.includes("_docs/qa/") &&
-    workflowWithoutDocs.reason.includes(".github/workflows/docs-ci.yml"),
-  "AC-006 INV-007 stop hook requires closure from working-tree facts, not wording alone",
+  stopReason.includes("追いついていますか") &&
+    stopReason.includes("無視して") &&
+    stopReason.includes("作業を始めないでください") &&
+    stopReason.includes("本筋の次の指示"),
+  "stop reminder is a single ignorable question with explicit response shape",
+);
+
+assert(
+  stopReason !== "" &&
+    !/verification|verdict|検証|反証|残リスク/.test(stopReason),
+  "stop reminder carries no keyword-compliance vocabulary demands",
+);
+
+assert(
+  analyzeStop({ dirtyPaths: [], input: {} }) === null,
+  "stop hook stays silent with a clean working tree",
 );
 
 assert(
   analyzeStop({
-    dirtyPaths: [
-      ".github/workflows/docs-ci.yml",
-      "_docs/qa/Workflow/x/verification.md",
-    ],
-    input: { last_assistant_message: fullyWordedClosure },
+    dirtyPaths: ["notes.txt"],
+    input: {},
   }) === null,
-  "AC-006 INV-007 accompanying QA docs satisfy the working-tree evidence condition",
+  "stop hook stays silent when no loop-relevant files changed",
 );
 
 assert(
   analyzeStop({
-    dirtyPaths: [
-      "_docs/standards/quality_assurance.md",
-      "_docs/intent/Workflow/x/decision.md",
-    ],
-    input: { last_assistant_message: fullyWordedClosure },
-  }) === null,
-  "AC-006 INV-007 accompanying intent docs satisfy the working-tree evidence condition",
-);
-
-assert(
-  workflowWithoutDocs?.decision === "block" &&
-    workflowWithoutDocs.reason.includes("Risk High") &&
-    workflowWithoutDocs.reason.includes("Plan") &&
-    workflowWithoutDocs.reason.includes("QA test-plan") &&
-    workflowWithoutDocs.reason.includes("verification"),
-  "AC-007 stop message spells out the Risk High document chain for workflow-sensitive paths",
-);
-
-const todoOnlyBlock = analyzeStop({
-  dirtyPaths: ["TODO.md"],
-  input: { last_assistant_message: "対応しました。" },
-});
-assert(
-  todoOnlyBlock?.decision === "block" &&
-    !todoOnlyBlock.reason.includes("Risk High") &&
-    !todoOnlyBlock.reason.includes("No change under _docs/intent/"),
-  "AC-007 keep the Risk High chain out of non workflow-sensitive closures",
-);
-
-assert(
-  analyzeStop({
-    dirtyPaths: ["README.md"],
-    input: {
-      stop_hook_active: true,
-      last_assistant_message: "対応しました。",
-    },
+    dirtyPaths: ["README.md", "src/app.ts"],
+    input: { stop_hook_active: true },
   }) === null,
   "stop hook avoids recursive block",
 );
@@ -281,10 +200,7 @@ const runStopHook = async (
   const writer = child.stdin.getWriter();
   await writer.write(
     new TextEncoder().encode(
-      JSON.stringify({
-        hook_event_name: "Stop",
-        last_assistant_message: "対応しました。",
-      }),
+      JSON.stringify({ hook_event_name: "Stop" }),
     ),
   );
   await writer.close();
@@ -317,7 +233,7 @@ try {
   assert(
     stopWithContract.code === 0 &&
       stopWithContract.stdout.includes('"decision":"block"'),
-    "Stop hook blocks under declared --allow-read --allow-env --allow-run=git",
+    "Stop hook reminds under declared --allow-read --allow-env --allow-run=git",
   );
 
   const stopWithoutEnv = await runStopHook([

@@ -1,19 +1,17 @@
-// Agent lifecycle hook guard for docs-driven projects.
-// It nudges agents to run the documented workflow and blocks high-risk deletion
-// paths, but it never updates docs or archives files by itself.
+// Agent lifecycle hook: Tier 2 の optional amplifier。規範は Tier 0 (AGENTS.md /
+// _docs/standards/)、機械強制は Tier 1 (validator) にあり、この hook は想起と
+// 安全ブロックの増幅のみを行う。docs を自動更新せず、Risk を確定しない。
 
 const HOOK_EVENT_NAMES = new Set([
   "SessionStart",
   "Stop",
   "PreToolUse",
-  "UserPromptSubmit",
 ]);
 
 type HookEventName =
   | "SessionStart"
   | "Stop"
-  | "PreToolUse"
-  | "UserPromptSubmit";
+  | "PreToolUse";
 
 type ToolInput = {
   file_path?: unknown;
@@ -32,8 +30,6 @@ type HookInput = {
   tool_input?: ToolInput;
   toolInput?: ToolInput;
   stop_hook_active?: unknown;
-  last_assistant_message?: unknown;
-  lastAssistantMessage?: unknown;
   [key: string]: unknown;
 };
 
@@ -42,50 +38,20 @@ export type HookDecision =
   | { decision: "context"; context: string };
 
 const SESSION_CONTEXT = [
-  "Docs-driven workflow reminder:",
-  "- Read AGENTS.md, TODO.md, _docs/documentation_guide.md, and relevant _docs/standards before implementation.",
-  "- Skills are not automatic. Use implementation-prep before multi-file or document-aligned work.",
-  "- Use docs-inventory for current-state triage, handoff discovery, stale-doc audits, or concerns that docs have become ceremonial.",
-  "- For Size >= M or Risk >= Medium tasks, use docs-prep and qa-prep before implementation, and qa-review before completion.",
-  "- Use docs-cleanup when draft/plan/survey/archive boundaries or substantial documentation cleanup are involved.",
-  "- Hooks are guardrails only: do not let them replace judgement, QA evidence, or explicit verification notes.",
+  "Intent-driven workflow reminder:",
+  "- Read AGENTS.md, TODO.md, and _docs/standards/quality_assurance.md before implementation.",
+  "- Every change runs the loop: TODO (AC) -> implement -> Intent Delta -> QA round. Only depth varies; presence does not.",
+  "- Code comments are pointer-only (`// intent: DEC-xxx — <reason>`). Prose belongs in a DEC or nowhere.",
+  "- Skills are not automatic: use implementation-prep before multi-file work, qa-review before completion, docs-inventory for triage, docs-cleanup for plan archives.",
+  "- Hooks are optional amplifiers. The norms hold with or without them.",
 ].join("\n");
 
-// intent: INV-001 (Workflow/lifecycle-self-audit) — Keep per-prompt context short; detailed checks belong at write and completion boundaries.
-const USER_PROMPT_CONTEXT =
-  "Before acting, re-check the current hypothesis against known evidence and plausible counterevidence, then stay within the agreed Goal, Scope, Non-Goals, and Intent.";
-
-// intent: INV-002 (Workflow/lifecycle-self-audit) — Audit durable design consequences without authorizing scope expansion.
-const WRITE_AUDIT_CONTEXT = [
-  "Before modifying files, audit the proposed change:",
-  "- Identify the evidence for the root cause and one plausible disconfirming explanation.",
-  "- Check non-local effects on callers, data flow, tests, docs, operations, and future maintenance.",
-  "- Compare the local patch with the durable solution, and preserve compatibility only when its support horizon and rationale are explicit.",
-  "- Stay within the agreed Goal, Scope, Non-Goals, and user authority; propose broader work instead of silently expanding scope.",
-  "Record externally verifiable decisions, tests, and residual risks rather than private chain-of-thought.",
+// 一度終えることを促し、勝手な監査列挙を防ぐ。強制はしない。
+const STOP_REMINDER = [
+  "ドキュメントは実態に追いついていますか？（Intent への記録・QA round・教訓候補の提示）",
+  "対応済み・該当なしなら、この通知は無視して終了してください。",
+  "未対応があっても今は作業を始めないでください。一言だけ現状を伝え、本筋の次の指示が来たら未対応に対する作業を行ってください。",
 ].join("\n");
-
-// intent: DEC-004 (Workflow/lifecycle-self-audit) — Surface the document requirement while the implementation approach can still change, instead of discovering it at Stop.
-const WORKFLOW_RISK_NOTICE = [
-  "This target is workflow-sensitive (CI, standards, agent config, or workflow scripts).",
-  "_docs/standards/quality_assurance.md can classify such a change as Risk High, which expects Intent, Plan, QA test-plan, and verification to exist before or during implementation, not after it.",
-  "Judge the actual Risk yourself: this notice only reports that the requirement may apply, and never settles the classification for you.",
-].join("\n");
-
-const CLOSURE_TERMS_RE =
-  /check-docs|validate-|docs-inventory|qa-review|docs-cleanup|post-implementation|verification|verdict|residual risk|未検証|検証|残リスク|実行できなかった|deferred/i;
-
-const AUDIT_EVIDENCE_PATTERNS = [
-  /仮説|反証|反例|別解|counterevidence|counterexample|alternative explanation|assumption/i,
-  /影響範囲|非局所|全体|呼び出し元|データフロー|運用影響|non-local|system impact|caller|data flow|downstream|upstream/i,
-  /根本原因|恒久|長期|保守性|互換性|support horizon|root cause|durable|long-term|maintainability|compatibility/i,
-  /残リスク|トレードオフ|見送り|deferred|residual risk|trade-off|follow-up/i,
-];
-
-const COMPLETION_TERMS_RE =
-  /完了|対応しました|実装しました|更新しました|修正しました|追加しました|done|completed|implemented|fixed|updated|added|finished|pass/i;
-
-const QUESTION_AT_END_RE = /[?？]\s*$/;
 
 const normalizePath = (path: unknown): string => {
   const segments: string[] = [];
@@ -126,36 +92,16 @@ const pathFromToolInput = (toolInput: ToolInput | null | undefined): string => {
   );
 };
 
-const PATCH_TARGET_RE = /^\*\*\*\s+(?:Add|Update|Delete) File:\s*(.+)$/gm;
-
-// intent: DEC-004 (Workflow/lifecycle-self-audit) — apply_patch carries its targets in the command, so path-aware audit must read both shapes to behave the same for Codex and Claude Code.
-const writeTargets = (
-  toolInput: ToolInput | null | undefined,
-  command: string,
-): string[] => {
-  const targets = [pathFromToolInput(toolInput)];
-  for (const match of command.matchAll(PATCH_TARGET_RE)) {
-    targets.push(normalizePath(match[1].trim()));
-  }
-  return unique(targets);
-};
-
-// intent: DEC-004 (Workflow/lifecycle-self-audit) — Single source for the workflow-sensitive path set, shared by write-time and completion-time audits.
 export const isWorkflowSensitivePath = (path: unknown): boolean => {
   const normalized = normalizePath(path);
   return normalized === "AGENTS.md" ||
     normalized === "CLAUDE.md" ||
     normalized.startsWith(".codex/") ||
-    normalized === ".claude/settings.json" ||
-    normalized.startsWith(".agents/skills/") ||
-    normalized.startsWith(".claude/skills/") ||
-    normalized.startsWith(".github/workflows/") ||
+    normalized.startsWith(".claude/") ||
+    normalized.startsWith(".agents/") ||
+    normalized.startsWith(".github/") ||
     normalized.startsWith("_docs/standards/") ||
-    normalized.startsWith("scripts/validate-") ||
-    normalized === "scripts/check-docs.sh" ||
-    normalized === "scripts/scope.ts" ||
-    normalized === "scripts/agent-workflow-hook.ts" ||
-    normalized === "scripts/test-agent-workflow-smoke.ts";
+    normalized.startsWith("scripts/");
 };
 
 const commandFromToolInput = (
@@ -165,8 +111,9 @@ const commandFromToolInput = (
   return String(toolInput.command ?? toolInput.cmd ?? "");
 };
 
+// .env.example は security 標準が参照を指示するファイルであり、対象から除く。
 const includesSensitivePath = (value: unknown): boolean =>
-  /(^|[\/\s'"`])(\.env(\.|$|[\/\s'"`])|id_rsa\b|id_ed25519\b|\.pem\b|\.key\b)/i
+  /(^|[\/\s'"`])(\.env(?!\.example)(\.|$|[\/\s'"`])|id_rsa\b|id_ed25519\b|\.pem\b|\.key\b)/i
     .test(String(value ?? ""));
 
 const protectedArchiveMove = (command: string): boolean =>
@@ -175,52 +122,46 @@ const protectedArchiveMove = (command: string): boolean =>
   /\b(git\s+)?mv\b[\s\S]*_docs\/archives\/(intent|qa|guide|reference)\b/i
     .test(command);
 
+const DELETION_WHY =
+  "Why: permanent deletion is user-gated in this template — the intent-driven loop depends on an intact audit trail, and an agent cannot judge alone that history is safe to destroy. Next action: propose the deletion to the user and wait; for completed plans use `git mv` into _docs/archives/plan/.";
+
 const destructiveCommandReason = (command: unknown): string | null => {
   const text = String(command ?? "");
-  const checks: Array<{ re: RegExp; reason: string }> = [
-    {
-      re: /(^|[;&|()\s])git\s+rm(\s|$)/,
-      reason:
-        "git rm is blocked by this template. Propose permanent deletion to the user, or use archive movement only after the checklist passes.",
-    },
-    {
-      re: /(^|[;&|()\s])rm\s+(-[^\s]+\s+)?/,
-      reason:
-        "rm is blocked by this template. Propose permanent deletion to the user, or use archive movement only after the checklist passes.",
-    },
+  const checks: Array<{ re: RegExp; label: string }> = [
+    { re: /(^|[;&|()\s])git\s+rm(\s|$)/, label: "git rm" },
+    { re: /(^|[;&|()\s])(\/(usr\/)?bin\/)?rm\s+(-[^\s]+\s+)?/, label: "rm" },
+    { re: /(^|[;&|()\s])command\s+rm(\s|$)/, label: "command rm" },
+    { re: /(^|[;&|()\s])xargs\s+(-[^\s]+\s+)*rm(\s|$)/, label: "xargs rm" },
+    { re: /(^|[;&|()\s])find\b[\s\S]*\s-delete(\s|$)/, label: "find -delete" },
+    { re: /(^|[;&|()\s])shred(\s|$)/, label: "shred" },
+    { re: /(^|[;&|()\s])unlink(\s|$)/, label: "unlink" },
     {
       re: /(^|[;&|()\s])git\s+reset\s+--hard(\s|$)/,
-      reason:
-        "git reset --hard is blocked because it can discard user or agent work.",
+      label: "git reset --hard",
     },
-    {
-      re: /(^|[;&|()\s])git\s+clean(\s|$)/,
-      reason: "git clean is blocked because it can permanently remove files.",
-    },
-    {
-      re: /(^|[;&|()\s])git\s+checkout\s+--(\s|$)/,
-      reason:
-        "git checkout -- is blocked because it can discard local changes.",
-    },
+    { re: /(^|[;&|()\s])git\s+clean(\s|$)/, label: "git clean" },
+    { re: /(^|[;&|()\s])git\s+checkout\s+--(\s|$)/, label: "git checkout --" },
   ];
   for (const check of checks) {
-    if (check.re.test(text)) return check.reason;
+    if (check.re.test(text)) {
+      return `${check.label} is blocked because it can permanently destroy files or discard work. ${DELETION_WHY}`;
+    }
   }
   if (protectedArchiveMove(text)) {
-    return "Do not move intent, QA, guide, or reference docs into archives. Only draft, plan, and survey docs can be archived after the checklist passes.";
+    return "Moving intent, QA, guide, or reference docs into archives is blocked. Why: these are permanent records the loop reads; only completed plans are archived. Next action: mark obsolete docs with status: superseded / obsolete instead.";
   }
   if (
     includesSensitivePath(text) &&
     /\b(cat|less|more|sed|awk|rg|grep|python|node|deno|cp|mv)\b/.test(text)
   ) {
-    return "This command appears to touch sensitive credential-like files. Avoid reading or copying .env, key, or token material.";
+    return "This command appears to touch credential-like files. Why: secrets must never enter agent context or the repo. Next action: use .env.example or a documented non-secret placeholder.";
   }
   return null;
 };
 
 const patchDeletionReason = (command: string): string | null => {
   if (!/\*\*\* Delete File:/.test(command)) return null;
-  return "File deletion through apply_patch is blocked by this template. Propose permanent deletion to the user, or use archive movement only after the checklist passes.";
+  return `File deletion through apply_patch is blocked. ${DELETION_WHY}`;
 };
 
 export const analyzePreToolUse = (
@@ -243,90 +184,29 @@ export const analyzePreToolUse = (
       return {
         decision: "block",
         reason:
-          "Edits to sensitive credential-like files are blocked. Use .env.example or a documented non-secret placeholder instead.",
+          "Edits to credential-like files are blocked. Why: secrets must never enter the repo or agent context. Next action: use .env.example or a documented non-secret placeholder.",
       };
     }
-    const workflowSensitive = writeTargets(toolInput, command).some(
-      isWorkflowSensitivePath,
-    );
-    return {
-      decision: "context",
-      context: workflowSensitive
-        ? `${WRITE_AUDIT_CONTEXT}\n${WORKFLOW_RISK_NOTICE}`
-        : WRITE_AUDIT_CONTEXT,
-    };
   }
 
   return null;
 };
 
-export const analyzeUserPromptSubmit = (): Extract<
-  HookDecision,
-  { decision: "context" }
-> => ({
-  decision: "context",
-  context: USER_PROMPT_CONTEXT,
-});
-
 type StopPathGroups = {
-  all: string[];
-  todo: string[];
-  docs: string[];
-  workflow: string[];
-  archive: string[];
-  temporaryDocs: string[];
-  qaDocs: string[];
-  intentDocs: string[];
+  relevant: string[];
 };
 
 const relevantStopPaths = (paths: string[]): StopPathGroups => {
   const normalized = unique(paths.map(normalizePath));
   return {
-    all: normalized,
-    todo: normalized.filter((path) => path === "TODO.md"),
-    docs: normalized.filter((path) =>
-      path.startsWith("_docs/") || [
-        "README.md",
-        "QUICKSTART.md",
-        "AGENTS.md",
-        "CLAUDE.md",
-      ].includes(path)
+    relevant: normalized.filter((path) =>
+      path === "TODO.md" ||
+      path.startsWith("_docs/") ||
+      isWorkflowSensitivePath(path) ||
+      /\.(ts|tsx|js|jsx|mjs|cjs|py|rb|go|rs|java|kt|swift|c|cc|cpp|h|hpp|cs|sh|sql|css|scss|vue|svelte)$/
+        .test(path)
     ),
-    workflow: normalized.filter(isWorkflowSensitivePath),
-    archive: normalized.filter((path) => path.startsWith("_docs/archives/")),
-    temporaryDocs: normalized.filter((path) =>
-      /^_docs\/(draft|plan|survey)\//.test(path)
-    ),
-    qaDocs: normalized.filter((path) => path.startsWith("_docs/qa/")),
-    intentDocs: normalized.filter((path) => path.startsWith("_docs/intent/")),
   };
-};
-
-const looksLikeCompletion = (message: unknown): boolean => {
-  const text = String(message ?? "").trim();
-  if (text === "") return true;
-  if (QUESTION_AT_END_RE.test(text) && !COMPLETION_TERMS_RE.test(text)) {
-    return false;
-  }
-  return COMPLETION_TERMS_RE.test(text);
-};
-
-const hasClosureEvidence = (message: unknown): boolean =>
-  CLOSURE_TERMS_RE.test(String(message ?? ""));
-
-export const auditEvidenceCount = (message: unknown): number =>
-  AUDIT_EVIDENCE_PATTERNS.filter((pattern) =>
-    pattern.test(String(message ?? ""))
-  )
-    .length;
-
-const listSome = (label: string, paths: string[]): string | null => {
-  if (paths.length === 0) return null;
-  const shown = paths.slice(0, 5).map((path) => `  - ${path}`).join("\n");
-  const suffix = paths.length > 5
-    ? `\n  - ...and ${paths.length - 5} more`
-    : "";
-  return `${label}:\n${shown}${suffix}`;
 };
 
 export const analyzeStop = (
@@ -336,60 +216,9 @@ export const analyzeStop = (
   },
 ): HookDecision | null => {
   if (input.stop_hook_active === true) return null;
-
   const grouped = relevantStopPaths(dirtyPaths);
-  const hasRelevantChange = grouped.todo.length > 0 ||
-    grouped.docs.length > 0 ||
-    grouped.workflow.length > 0;
-  if (!hasRelevantChange) return null;
-
-  const lastMessage = String(
-    input.last_assistant_message ?? input.lastAssistantMessage ?? "",
-  );
-  if (!looksLikeCompletion(lastMessage)) return null;
-  const hasVerificationEvidence = hasClosureEvidence(lastMessage);
-  const hasIndependentAuditEvidence = auditEvidenceCount(lastMessage) >= 2;
-  // intent: DEC-005 (Workflow/lifecycle-self-audit) — Keyword matching on the final message can be satisfied by wording alone, so a working-tree fact is required as well.
-  const workflowChangeLacksDocs = grouped.workflow.length > 0 &&
-    grouped.intentDocs.length === 0 &&
-    grouped.qaDocs.length === 0;
-  if (
-    hasVerificationEvidence && hasIndependentAuditEvidence &&
-    !workflowChangeLacksDocs
-  ) {
-    return null;
-  }
-
-  const sections = [
-    listSome("Changed workflow-sensitive files", grouped.workflow),
-    workflowChangeLacksDocs
-      ? "No change under _docs/intent/ or _docs/qa/ accompanies these workflow-sensitive files, so the Risk High document chain is currently unsatisfied in the working tree."
-      : null,
-    listSome("Changed documentation files", grouped.docs),
-    listSome("Changed TODO files", grouped.todo),
-  ].filter(Boolean).join("\n\n");
-
-  const actions = [
-    "Before finishing, handle the docs-driven closure explicitly:",
-    "- If TODO.md or _docs changed, run ./scripts/check-docs.sh or state why it cannot run.",
-    "- If the request is current-state triage, handoff discovery, or documentation health review, use docs-inventory before cleanup.",
-    "- If the task is Size >= M or Risk >= Medium, use qa-review and record verification before completion.",
-    // intent: DEC-006 (Workflow/lifecycle-self-audit) — Risk High needs the whole document chain, not verification alone.
-    ...(grouped.workflow.length > 0
-      ? [
-        "- Workflow-sensitive paths such as .github/workflows/ or _docs/standards/ can be Risk High in _docs/standards/quality_assurance.md, which requires Intent, Plan, QA test-plan, and verification together; create the missing ones or state why the change is not Risk High.",
-      ]
-      : []),
-    "- If draft/plan/survey cleanup or archives are involved, use docs-cleanup. Do not archive intent or QA docs.",
-    "- Re-audit the result from at least two explicit perspectives: counterevidence or alternatives, non-local system effects, long-term maintainability or compatibility, and residual risks or trade-offs.",
-    "- Keep the audit within the agreed Goal / Scope / Non-Goals. Propose broader work instead of silently expanding scope.",
-    "- Mention commands actually run and remaining gaps in the final response.",
-  ].join("\n");
-
-  return {
-    decision: "block",
-    reason: `${sections}\n\n${actions}`,
-  };
+  if (grouped.relevant.length === 0) return null;
+  return { decision: "block", reason: STOP_REMINDER };
 };
 
 const readStdin = async (): Promise<string> => {
@@ -472,15 +301,6 @@ const blockOut = (eventName: string, reason: string): void => {
   jsonOut({ decision: "block", reason });
 };
 
-const contextOut = (eventName: string, context: string): void => {
-  jsonOut({
-    hookSpecificOutput: {
-      hookEventName: eventName,
-      additionalContext: context,
-    },
-  });
-};
-
 const sessionStartOut = (): void => {
   jsonOut({
     hookSpecificOutput: {
@@ -498,7 +318,6 @@ const inferEventName = (arg: string | undefined, input: HookInput): string => {
   if (arg === "session-start") return "SessionStart";
   if (arg === "stop") return "Stop";
   if (arg === "pre-tool-use") return "PreToolUse";
-  if (arg === "user-prompt-submit") return "UserPromptSubmit";
   return String(fromInput ?? arg ?? "");
 };
 
@@ -515,15 +334,6 @@ const main = async (): Promise<void> => {
   if (eventName === "PreToolUse") {
     const result = analyzePreToolUse(input);
     if (result?.decision === "block") blockOut("PreToolUse", result.reason);
-    else if (result?.decision === "context") {
-      contextOut("PreToolUse", result.context);
-    }
-    return;
-  }
-
-  if (eventName === "UserPromptSubmit") {
-    const result = analyzeUserPromptSubmit();
-    contextOut("UserPromptSubmit", result.context);
     return;
   }
 

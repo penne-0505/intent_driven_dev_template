@@ -21,7 +21,7 @@ type SplitTarget = {
   anchor: string;
 };
 
-const DOC_ROOTS = ["_docs", "_evals"] as const;
+const DOC_ROOTS = ["_docs", "_meta"] as const;
 const ROOT_FILES = [
   "README.md",
   "AGENTS.md",
@@ -32,7 +32,7 @@ const ARCHIVE_TYPES = ["draft", "plan", "survey"] as const;
 const FORBIDDEN_ARCHIVE_TYPES = ["intent", "qa", "guide", "reference"] as const;
 const ROOT_RELATIVE_PREFIXES = [
   "_docs/",
-  "_evals/",
+  "_meta/",
   ".agents/",
   ".claude/",
   ".github/",
@@ -45,7 +45,7 @@ const ROOT_RELATIVE_FILES = [
   "QUICKSTART.md",
   "LICENSE.txt",
 ] as const;
-const FIXTURE_ROOT = "_evals/validator-fixtures/";
+const FIXTURE_ROOT = "_meta/validator-fixtures/";
 const STARTER_ROOT = "starter/";
 
 const normalizePath = (path: string): string => {
