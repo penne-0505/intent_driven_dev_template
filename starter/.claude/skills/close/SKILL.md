@@ -6,22 +6,22 @@ description: Use after implementation work — records the QA round (Intent Delt
 # Close
 
 Run after implementation, before the final response. The norms live in
-`_docs/standards/quality_assurance.md` — this skill is the procedure, not the rulebook.
+`_docs/standards/workflow.md` — this skill is the procedure, not the rulebook.
 
 ## Procedure
 
 1. **Verify.** Run the planned checks and `./scripts/check-docs.sh`. Compare the diff
    against the request, TODO Goal, and Acceptance Criteria.
-2. **R1 review** (quality_assurance.md § R1): switch to a reviewer stance — or hand to a
+2. **R1 review** (workflow.md § R1): switch to a reviewer stance — or hand to a
    different model when available — and check: DEC conformance, pointer placement,
    whether a `None:` Intent Delta is actually justified.
 3. **Record the Round** in the task's `qa.md`, or in `_docs/qa/<Area>/maintenance.md` for
-   small work (format: quality_assurance.md § QA 文書). Every change gets a Round.
-4. **R2** (quality_assurance.md § R2): if triggered (new DEC / `Size >= M` / `Risk High`),
+   small work (format: workflow.md § QA round). Every change gets a Round.
+4. **R2** (workflow.md § R2): if triggered (new DEC / `Size >= M` / `Risk High`),
    write `R2: PENDING` and add an R2 task to TODO.md — or run it synchronously if this
    harness can spawn an isolated fresh-context call (pass only the commit range and QA doc
    path; grade the blind answers before completion).
-5. **Reflect** (quality_assurance.md § transferable principle): record a candidate or a
+5. **Reflect** (workflow.md § transferable principle): record a candidate or a
    reasoned `None:`. Candidates go to conventions with the `(candidate)` mark and must be
    presented in the final summary (principle / origin / impact / risks / recommendation).
 6. **Decide completion.** `PASS` (or accepted `PARTIAL`) → remove the TODO task, add

@@ -18,7 +18,7 @@
 
 人がサイクルを回すことも出来ますが、基本的には**Claude Codeなどのコーディングエージェント**が、この規則に従って自律的な開発を行うために設計されました。
 
-**詳細については [ガイドライン](_docs/documentation_guide.md) と [quality assurance standard](_docs/standards/quality_assurance.md) を参照してください。**
+**詳細については [workflow standard](_docs/standards/workflow.md) と [document contracts](_docs/standards/document_contracts.md) を参照してください。**
 
 初めて使う場合は、まず [Quickstart](QUICKSTART.md) を読んでください。
 
@@ -33,7 +33,7 @@
 
 ローカルでドキュメント検証をまとめて実行する場合は、`scripts/check-docs.sh` を使います。CI も同一 script を通します。
 
-既存プロジェクトへ後付け導入する場合は、`DD_SCOPE_BASE` に導入時点の commit を設定して、既定では「導入以降に追加した docs だけ」を検証対象に絞れます。設定方法は [Quickstart](QUICKSTART.md) と [documentation_operations.md](_docs/standards/documentation_operations.md) を参照してください。
+既存プロジェクトへ後付け導入する場合は、`DD_SCOPE_BASE` に導入時点の commit を設定して、既定では「導入以降に追加した docs だけ」を検証対象に絞れます。設定方法は [Quickstart](QUICKSTART.md) と [template_operations.md](_docs/standards/template_operations.md) を参照してください。
 
 導入後も template の更新を取り込む場合は、推奨 release tag とその full SHA を `docs-template.lock.json` に記録し、[`docs-template-migration`](.agents/skills/docs-template-migration/SKILL.md) skill で既存のカスタマイズを保全しながら three-way migration を行います。
 
@@ -73,7 +73,7 @@ context.
 
 While humans can run the cycle, it is primarily designed **for coding agents like Claude Code** to autonomously develop according to these rules.
 
-**For details, see the [guide](_docs/documentation_guide.md) and the [quality assurance standard](_docs/standards/quality_assurance.md).**
+**For details, see the [workflow standard](_docs/standards/workflow.md) and the [document contracts](_docs/standards/document_contracts.md).**
 
 If this is your first time using the template, start with the [Quickstart](QUICKSTART.md).
 

@@ -21,7 +21,7 @@ assert(
 
 assert(
   isWorkflowSensitivePath("AGENTS.md") &&
-    isWorkflowSensitivePath("./_docs/standards/quality_assurance.md") &&
+    isWorkflowSensitivePath("./_docs/standards/workflow.md") &&
     isWorkflowSensitivePath(".claude/settings.json") &&
     !isWorkflowSensitivePath("README.md") &&
     !isWorkflowSensitivePath("_docs/qa/Workflow/x/qa.md"),

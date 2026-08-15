@@ -19,7 +19,7 @@ archive, delete, or rewrite docs unless the user explicitly asks for follow-up i
 ## Inventory Flow
 
 1. **Find the operating surface.** Read `AGENTS.md`, `TODO.md`, and
-   `_docs/standards/quality_assurance.md`. Completion criterion: you can name the loop,
+   `_docs/standards/workflow.md`. Completion criterion: you can name the loop,
    the validation command, and the current depth rules.
 2. **Map active work.** Classify each TODO task as ready, blocked, underspecified, or stale.
    Surface pending R2 tasks and their age.

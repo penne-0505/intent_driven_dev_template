@@ -49,7 +49,7 @@ const claudeClose = await read(".claude/skills/close/SKILL.md");
 const agentsGuide = await read("AGENTS.md");
 const quickstart = await read("QUICKSTART.md");
 const documentationOperations = await read(
-  "_docs/standards/documentation_operations.md",
+  "_docs/standards/template_operations.md",
 );
 const templateLockExample = await json("docs-template.lock.example.json") as {
   schema?: number;
@@ -58,7 +58,7 @@ const templateLockExample = await json("docs-template.lock.example.json") as {
 };
 const intentTemplate = await read("_docs/standards/templates/intent.md");
 const qaTemplate = await read("_docs/standards/templates/qa.md");
-const qualityStandard = await read("_docs/standards/quality_assurance.md");
+const qualityStandard = await read("_docs/standards/workflow.md");
 const whyFirstSkills = [
   "prep",
   "close",
