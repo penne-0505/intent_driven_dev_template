@@ -498,14 +498,20 @@ const validateQaInvariants = async (
     const file of walkFiles("_docs/qa", (path) => path.endsWith(".md"))
   ) {
     if (!inScope(file)) continue;
+    // 受理集合は validate-qa の QA_PATH_RE と同期させる: 現行 unified qa.md /
+    // maintenance.md と legacy test-plan.md / verification.md。片側だけ更新すると
+    // doc-links が現行 schema の QA 文書を偽陽性で拒否する。
+    if (/^_docs\/qa\/[A-Za-z][A-Za-z0-9-]*\/maintenance\.md$/.test(file)) {
+      continue;
+    }
     const match = file.match(
-      /^_docs\/qa\/([A-Za-z][A-Za-z0-9-]*)\/([a-z0-9]+(?:-[a-z0-9]+)*)\/(test-plan|verification)\.md$/,
+      /^_docs\/qa\/([A-Za-z][A-Za-z0-9-]*)\/([a-z0-9]+(?:-[a-z0-9]+)*)\/(qa|test-plan|verification)\.md$/,
     );
     if (!match) {
       errors.push({
         file,
         message:
-          "QA path must match _docs/qa/<Area>/<slug>/test-plan.md or verification.md",
+          "QA path must match _docs/qa/<Area>/<slug>/qa.md, _docs/qa/<Area>/maintenance.md, or a legacy test-plan.md / verification.md path",
       });
       continue;
     }
