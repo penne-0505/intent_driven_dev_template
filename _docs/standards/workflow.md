@@ -226,8 +226,8 @@ Rounds は追記専用である。過去の round (特に planned の Checks) �
 - candidate を記録した agent は、最終報告で必ず定型提示を行う:
   1. 原則の本文 (1–2 行) / 2. 出所 (何がきっかけか) / 3. 採用時の影響範囲 /
   4. 採用のリスク・反例になりそうなケース / 5. agent 自身の推奨と理由。
-- docs-inventory と validator は未批准 candidate の件数と経過日数を warning として報告する
-  (督促するがブロックしない)。
+- 未批准 candidate は可視化され続ける: validator が件数を warning で報告し、docs-inventory が
+  git 履歴から経過日数を報告する (督促するがブロックしない)。
 
 ## 基盤原則
 

@@ -327,6 +327,16 @@ const run = async (): Promise<void> => {
         `legacy intent_schema ${schema}: migrate to ${CURRENT_INTENT_SCHEMA} when its meaning next changes`,
       );
     }
+    const candidateCount = decisionEntries(
+      sectionContent(src, "Decisions") ?? "",
+    ).filter((decision) => decision.candidate).length;
+    if (candidateCount > 0) {
+      add(
+        warnings,
+        file,
+        `${candidateCount} unratified candidate DEC(s) await the user's ratification`,
+      );
+    }
     const ids = validateDecisionDoc(file, src, Number(schema), errors);
     if (schema === CURRENT_INTENT_SCHEMA) {
       for (const id of ids.decisionIds) {

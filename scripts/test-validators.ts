@@ -48,6 +48,9 @@ const QA_INVALID = [
   "_meta/validator-fixtures/qa/invalid/qa-archive-path.md",
   "_meta/validator-fixtures/qa/invalid/v3-missing-transferable-principles.md",
   "_meta/validator-fixtures/qa/invalid/v3-bare-none-transferable-principles.md",
+  "_meta/validator-fixtures/qa/invalid/unified-bare-none-delta.md",
+  "_meta/validator-fixtures/qa/invalid/unified-r2-mismatch.md",
+  "_meta/validator-fixtures/qa/invalid/maintenance-dec-creation.md",
 ] as const;
 const FRONTMATTER_VALID = [
   "_meta/validator-fixtures/frontmatter/valid/intent-schema.md",
