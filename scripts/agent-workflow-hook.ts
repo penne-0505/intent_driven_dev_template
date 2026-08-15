@@ -42,15 +42,15 @@ const SESSION_CONTEXT = [
   "- Read AGENTS.md, TODO.md, and _docs/standards/quality_assurance.md before implementation.",
   "- Every change runs the loop: TODO (AC) -> implement -> Intent Delta -> QA round. Only depth varies; presence does not.",
   "- Code comments are pointer-only (`// intent: DEC-xxx — <reason>`). Prose belongs in a DEC or nowhere.",
-  "- Skills are not automatic: use implementation-prep before multi-file work, qa-review before completion, docs-inventory for triage, docs-cleanup for plan archives.",
+  "- Skills are not automatic: prep before work, close after work, docs-inventory for triage, docs-template-migration for template updates.",
   "- Hooks are optional amplifiers. The norms hold with or without them.",
 ].join("\n");
 
 // 一度終えることを促し、勝手な監査列挙を防ぐ。強制はしない。
 const STOP_REMINDER = [
-  "ドキュメントは実態に追いついていますか？（Intent への記録・QA round・教訓候補の提示）",
+  "ドキュメントは実態に追いついていますか？（Intent への記録・QA round・教訓候補の提示 — close skill の管轄）",
   "対応済み・該当なしなら、この通知は無視して終了してください。",
-  "未対応があっても今は作業を始めないでください。一言だけ現状を伝え、本筋の次の指示が来たら未対応に対する作業を行ってください。",
+  "未対応があっても今は作業を始めないでください。一言だけ現状を伝え、本筋の次の指示が来たら close で処理してください。",
 ].join("\n");
 
 const normalizePath = (path: unknown): string => {

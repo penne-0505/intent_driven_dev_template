@@ -40,7 +40,7 @@
 - 久しぶりの再開、handoff 探索、現状把握、docs が形骸化していないかの確認では `docs-inventory` skill を使う。
 - upstream template を推奨 release tag へ更新する場合は `docs-template-migration` skill を使い、
   moving branch tip ではなく tag と full SHA を固定し、`docs-template.lock.json` を互換移行の検証後に更新する。
-- 完了前には `qa-review` skill を使い、QA round の verdict を確認する。
+- 作業の前には `prep` skill、完了前には `close` skill を使う。skill は手順のみを持ち、規範の正典は standards にある。
 - 安全性・権限・secret・外部入力の扱いは [security for agents](_docs/standards/security_for_agents.md) に従う。
 - root 直下の Markdown は active project guidance として扱われる。一回限りの実装プロンプトや
   外部向け handoff は `_meta/` 配下に置き、非運用の資料として明記する。
