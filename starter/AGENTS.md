@@ -39,6 +39,8 @@
 - 久しぶりの再開、handoff 探索、現状把握、docs が形骸化していないかの確認では `docs-inventory` skill を使う。
 - upstream template を推奨 release tag へ更新する場合は `docs-template-migration` skill を使い、
   moving branch tip ではなく tag と full SHA を固定し、`docs-template.lock.json` を互換移行の検証後に更新する。
+- 既存プロジェクトへの後付け導入で、テンプレート以前からある設計判断を DEC として回収する場合は
+  `intent-mining` skill を使う。証拠なしの推測を DEC として書かない。
 - 作業の前には `prep` skill、完了前には `close` skill を使う。skill は手順のみを持ち、規範の正典は standards にある。
 - 安全性・権限・secret・外部入力の扱いは [workflow standard](_docs/standards/workflow.md) の安全境界に従う。
 - root 直下の Markdown は active project guidance として扱われる。一回限りの実装プロンプトや

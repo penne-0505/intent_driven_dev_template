@@ -62,7 +62,9 @@ const qualityStandard = await read("_docs/standards/workflow.md");
 const whyFirstSkills = [
   "prep",
   "close",
+  "intent-mining",
 ] as const;
+const agentsMining = await read(".agents/skills/intent-mining/SKILL.md");
 
 const hookEvents = (config: HookConfig): string[] =>
   Object.keys(config.hooks ?? {});
@@ -199,6 +201,17 @@ assert(
 assert(
   contains(agentsClose, "Archive the Plan", "Never archive intent"),
   "close skill keeps archive boundary guidance",
+);
+
+assert(
+  contains(
+    agentsMining,
+    "Evidence over invention",
+    "A guess is a question, not a record",
+    "Incremental by default",
+    "Reporting boundary",
+  ),
+  "intent-mining skill grounds mined DECs in evidence and staged scope",
 );
 
 assert(

@@ -78,6 +78,8 @@ hook は Tier 2 の optional amplifier です。規範は Markdown (AGENTS.md / 
 5. スコープ対応 validator の実行に `--allow-env`（git 使用時はさらに `--allow-run=git`）を付与する。`scripts/check-docs.sh` は設定済み。
 6. `TODO.md` は段階導入でも常に全体が検証対象である点に注意する。
 
+テンプレート以前から存在する設計判断（既存コード・仕様書・履歴に眠る why）を DEC として回収するには、[`intent-mining`](.agents/skills/intent-mining/SKILL.md) skill を使います。一括採掘ではなく、触る領域から証拠付きで段階的に掘り起こします。
+
 詳細は [段階的導入スコープ](_docs/standards/template_operations.md) を参照してください。
 
 ### Template の継続更新

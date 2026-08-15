@@ -69,4 +69,6 @@ upstream template の採用 revision を示す値ではない。両者を兼用�
   `fetch-depth: 0` を設定する。
 
 既存コード・仕様書・過去の記録から intent を掘り起こす導入時の手順 (意図採掘) は、本標準の
-射程外であり、独立した手順書として整備する。
+射程外であり、`intent-mining` skill が担う。テンプレートの構造を統合するのが
+`docs-template-migration`、既存プロジェクトに眠る why を DEC として回収するのが
+`intent-mining` である。
