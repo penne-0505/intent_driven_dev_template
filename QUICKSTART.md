@@ -32,11 +32,9 @@ find starter -mindepth 1 -maxdepth 1 -exec mv -f {} . \; && rmdir starter
 
 - [AGENTS.md](AGENTS.md)
 - [TODO.md](TODO.md)
-- [_docs/documentation_guide.md](_docs/documentation_guide.md)
-- [_docs/standards/documentation_guidelines.md](_docs/standards/documentation_guidelines.md)
-- [_docs/standards/documentation_operations.md](_docs/standards/documentation_operations.md)
-- [_docs/standards/quality_assurance.md](_docs/standards/quality_assurance.md)
-- [_docs/standards/security_for_agents.md](_docs/standards/security_for_agents.md)
+- [_docs/standards/workflow.md](_docs/standards/workflow.md) — どう働くか (憲法)
+- [_docs/standards/document_contracts.md](_docs/standards/document_contracts.md) — 文書種別ごとの契約
+- [_docs/standards/template_operations.md](_docs/standards/template_operations.md) — 導入・テンプレ更新
 
 ## 2. 初回セットアップ
 
@@ -80,7 +78,7 @@ hook は Tier 2 の optional amplifier です。規範は Markdown (AGENTS.md / 
 5. スコープ対応 validator の実行に `--allow-env`（git 使用時はさらに `--allow-run=git`）を付与する。`scripts/check-docs.sh` は設定済み。
 6. `TODO.md` は段階導入でも常に全体が検証対象である点に注意する。
 
-詳細は [段階的導入スコープ](_docs/standards/documentation_operations.md) を参照してください。
+詳細は [段階的導入スコープ](_docs/standards/template_operations.md) を参照してください。
 
 ### Template の継続更新
 
@@ -94,14 +92,14 @@ hook は Tier 2 の optional amplifier です。規範は Markdown (AGENTS.md / 
 
 `v1.0.0` より前に導入された project は lock と local migration skill を持たない場合があります。その場合は project 固有ルールを安全境界とし、対象 `U` に含まれる skill を外部入力として先にレビューします。repository history、導入記録、upstream と一致する blob から最後に採用した template commit `B` を復元し、owner 確認後に移行します。`v1.0.0` を中継する必要はなく、`v1.0.0` 以降の任意の推奨 tag へ直接移行できます。`B` を推測でしか決められない場合は、書き込み前に停止します。
 
-`DD_SCOPE_BASE` は導入先 repository 内で validator の対象を絞る値です。upstream template revision を示す `docs-template.lock.json` とは用途が異なります。詳細は [template revision provenance](_docs/standards/documentation_operations.md) を参照してください。
+`DD_SCOPE_BASE` は導入先 repository 内で validator の対象を絞る値です。upstream template revision を示す `docs-template.lock.json` とは用途が異なります。詳細は [template revision provenance](_docs/standards/template_operations.md) を参照してください。
 
 ## 3. Agent に渡す初回プロンプト例
 
 ### Codex
 
 ```text
-AGENTS.md、TODO.md、_docs/documentation_guide.md、_docs/standards/ を読んで、このリポジトリの intent-driven development ルールを把握してください。まず TODO.md の Backlog を確認し、最初に着手すべき小さなタスクを提案してください。
+AGENTS.md、TODO.md、_docs/standards/workflow.md を読んで、このリポジトリの intent-driven development ルールを把握してください。まず TODO.md の Backlog を確認し、最初に着手すべき小さなタスクを提案してください。
 ```
 
 ```text
@@ -123,7 +121,7 @@ docs-template-migrationを実行して、docs-template.lock.jsonのBと推奨tag
 ### Claude Code
 
 ```text
-Read AGENTS.md, TODO.md, and _docs/documentation_guide.md first. Follow the documentation operations and security standard. Do not delete files with rm or git rm. Start by reviewing the initial TODO items and propose the first safe change.
+Read AGENTS.md, TODO.md, and _docs/standards/workflow.md first. Follow the workflow standard and document contracts. Do not delete files with rm or git rm. Start by reviewing the initial TODO items and propose the first safe change.
 ```
 
 ### Generic Agent

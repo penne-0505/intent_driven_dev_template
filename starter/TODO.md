@@ -97,7 +97,7 @@
 ## 3. Required Depth
 
 すべてのタスクは完了時に Intent Delta の宣言と QA round を持つ (常時 ON ループ)。省略できるのは
-深さであって、存在ではない。詳細は `_docs/standards/quality_assurance.md` を参照。
+深さであって、存在ではない。詳細は `_docs/standards/workflow.md` を参照。
 
 | Condition | Requirement |
 | --- | --- |
@@ -168,7 +168,7 @@ _docs/archives/plan/<Area>/<slug>/plan.md
 
 ### Risk
 
-Risk の詳細とパスベースの自動下限は `_docs/standards/quality_assurance.md` を参照する。
+Risk の詳細とパスベースの自動下限は `_docs/standards/workflow.md` を参照する。
 
 - `Low`: 局所的で失敗影響が小さい変更。
 - `Medium`: 機能挙動、ワークフロー、validator、ドキュメント規約、agent skill に影響する変更。
@@ -206,7 +206,7 @@ Risk の詳細とパスベースの自動下限は `_docs/standards/quality_assu
 ### R2 Task
 
 R2 タスクを拾った agent は、対象 diff とリポジトリ内の docs だけを読んで
-`_docs/standards/quality_assurance.md` の固定設問 4 つに答え、結果と gap を該当 QA 文書の
+`_docs/standards/workflow.md` の固定設問 4 つに答え、結果と gap を該当 QA 文書の
 round に追記する。gap があれば DEC 修繕タスクを積む。
 
 ## 8. Task Definition Examples
@@ -392,7 +392,7 @@ round に追記する。gap があれば DEC 修繕タスクを積む。
   3. [ ] `actions/checkout` を `fetch-depth: 0` にする
 - **Description**:
   - Context: 新規プロジェクトでは不要。既存プロジェクトへ後付け導入する場合のみ着手する条件付きタスク。導入しない場合はこのタスクを削除してよい。
-  - Notes: 手順は QUICKSTART「既存プロジェクトへ後付け導入する場合」と `_docs/standards/documentation_operations.md` の段階的導入スコープを参照。完了時に maintenance.md へ round を追記する。
+  - Notes: 手順は QUICKSTART「既存プロジェクトへ後付け導入する場合」と `_docs/standards/template_operations.md` の段階的導入スコープを参照。完了時に maintenance.md へ round を追記する。
 - **Plan**: None
 - **Intent**: None
 - **QA**: _docs/qa/Workflow/maintenance.md

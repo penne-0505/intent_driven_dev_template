@@ -39,7 +39,7 @@ export type HookDecision =
 
 const SESSION_CONTEXT = [
   "Intent-driven workflow reminder:",
-  "- Read AGENTS.md, TODO.md, and _docs/standards/quality_assurance.md before implementation.",
+  "- Read AGENTS.md, TODO.md, and _docs/standards/workflow.md before implementation.",
   "- Every change runs the loop: TODO (AC) -> implement -> Intent Delta -> QA round. Only depth varies; presence does not.",
   "- Code comments are pointer-only (`// intent: DEC-xxx — <reason>`). Prose belongs in a DEC or nowhere.",
   "- Skills are not automatic: prep before work, close after work, docs-inventory for triage, docs-template-migration for template updates.",

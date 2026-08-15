@@ -13,7 +13,7 @@
 ## ループ
 
 - すべての変更は最小ループを回る: `TODO (AC) → 実装 → Intent Delta の宣言 → QA round の記録`。
-  省略できるのは深さであって、存在ではない。詳細は [quality assurance standard](_docs/standards/quality_assurance.md) に従う。
+  省略できるのは深さであって、存在ではない。詳細は [workflow standard](_docs/standards/workflow.md) に従う。
 - Intent Delta は三値: DEC 新設 / `applied: DEC-xxx` / 理由付き `None:`。無言の省略は禁止。
 - `Size >= M` は Plan を、`Risk >= Medium` は実装前の QA (`qa_status: planned`) を要求する。
 - DEC 新設 / `Size >= M` / `Risk High` では R2 再構成テストが発動する。`R2: PENDING` を QA round に
@@ -32,8 +32,7 @@
 
 ## ドキュメント
 
-- [documentation guidelines](_docs/standards/documentation_guidelines.md) と
-  [documentation operations](_docs/standards/documentation_operations.md) を遵守する。
+- 文書の置き場・frontmatter・ライフサイクルは [document contracts](_docs/standards/document_contracts.md) に従う。
 - 完了履歴の正典は QA round (`_docs/qa/.../qa.md` / `maintenance.md`)。TODO に Done セクションを作らない。
 - 教訓 (transferable principle) の candidate は conventions へ candidate マーク付きで追記できるが、
   規範化 (マークを外す操作) は user のみが行う。candidate は最終報告で定型提示する。
@@ -41,7 +40,7 @@
 - upstream template を推奨 release tag へ更新する場合は `docs-template-migration` skill を使い、
   moving branch tip ではなく tag と full SHA を固定し、`docs-template.lock.json` を互換移行の検証後に更新する。
 - 作業の前には `prep` skill、完了前には `close` skill を使う。skill は手順のみを持ち、規範の正典は standards にある。
-- 安全性・権限・secret・外部入力の扱いは [security for agents](_docs/standards/security_for_agents.md) に従う。
+- 安全性・権限・secret・外部入力の扱いは [workflow standard](_docs/standards/workflow.md) の安全境界に従う。
 - root 直下の Markdown は active project guidance として扱われる。一回限りの実装プロンプトや
   外部向け handoff は `_meta/` 配下に置き、非運用の資料として明記する。
 
