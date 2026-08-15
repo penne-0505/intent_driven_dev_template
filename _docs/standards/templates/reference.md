@@ -32,4 +32,4 @@ related_prs: []
 ## Verification
 - 関連 QA: `_docs/qa/<Area>/<slug>/qa.md`
 - 検証証跡: `_docs/qa/<Area>/<slug>/qa.md`
-- API / 仕様の保証範囲が変わる場合は、verification の verdict と残リスクを参照する
+- API / 仕様の保証範囲が変わる場合は、該当 qa.md の round (verdict・残リスク) を参照する

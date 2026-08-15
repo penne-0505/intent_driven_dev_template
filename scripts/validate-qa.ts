@@ -351,10 +351,11 @@ type ValidateUnifiedQaParams = {
   src: string;
   attrs: FrontMatter;
   errors: ValidationItem[];
+  warnings: ValidationItem[];
 };
 
 const validateUnifiedQa = (
-  { file, src, attrs, errors }: ValidateUnifiedQaParams,
+  { file, src, attrs, errors, warnings }: ValidateUnifiedQaParams,
 ): void => {
   if (attrs.qa_schema !== UNIFIED_SCHEMA) {
     add(
@@ -393,10 +394,14 @@ const validateUnifiedQa = (
     return;
   }
 
+  const roundHeadings = [...rounds.matchAll(/^###\s+Round\b.*$/gm)].map((
+    match,
+  ) => match[0]);
   let lastVerdict: string | null = null;
   for (const [index, block] of roundBlocks.entries()) {
     const label = `Round ${index + 1}`;
     const delta = block.match(/\*\*Intent Delta\*\*:\s*(.+)$/m)?.[1]?.trim();
+    const createsDec = delta !== undefined && /新設/.test(delta);
     if (!delta) {
       add(errors, file, `${label}: missing Intent Delta`);
     } else if (
@@ -407,6 +412,46 @@ const validateUnifiedQa = (
         file,
         `${label}: Intent Delta must reference a DEC or be "None: <reason>"`,
       );
+    }
+    if (isMaintenance && createsDec) {
+      add(
+        errors,
+        file,
+        `${label}: DEC-creating rounds belong in a dedicated qa.md, not maintenance.md`,
+      );
+    }
+    const r2 = block.match(/\*\*R2\*\*:\s*(.+)$/m)?.[1]?.trim();
+    if (!r2) {
+      add(
+        errors,
+        file,
+        `${label}: missing R2 (write 非発動 when the trigger conditions do not apply)`,
+      );
+    } else {
+      const highRisk = attrs.risk === "High" || attrs.risk === "Critical";
+      if (/非発動/.test(r2) && (createsDec || highRisk)) {
+        add(
+          errors,
+          file,
+          `${label}: R2 must not be 非発動 when the round creates a DEC or risk is High/Critical`,
+        );
+      }
+      if (/PENDING/.test(r2)) {
+        const dateMatch = roundHeadings[index]?.match(/(\d{4}-\d{2}-\d{2})/);
+        if (dateMatch) {
+          const age = (Date.now() - new Date(dateMatch[1]).getTime()) /
+            (24 * 60 * 60 * 1000);
+          if (age > 30) {
+            add(
+              warnings,
+              file,
+              `${label}: R2 has been PENDING for ${
+                Math.floor(age)
+              } days — the reconstruction task may be stalled`,
+            );
+          }
+        }
+      }
     }
     const principles = block.match(
       /\*\*Transferable Principles\*\*:\s*(.+)$/m,
@@ -933,7 +978,7 @@ const run = async (): Promise<void> => {
 
     validateFrontMatter(file, attrs, errors);
     if (kind === "qa" || kind === "maintenance") {
-      validateUnifiedQa({ file, src, attrs, errors });
+      validateUnifiedQa({ file, src, attrs, errors, warnings });
     } else if (kind === "test-plan") {
       add(
         warnings,

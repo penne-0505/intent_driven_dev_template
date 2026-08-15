@@ -32,4 +32,4 @@ related_prs: []
 - よくある問題と対処
 
 ## References
-- 関連する reference / intent / plan / QA / verification へのリンク
+- 関連する reference / intent / plan / qa.md へのリンク
