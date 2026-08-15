@@ -2,62 +2,61 @@
 
 ## Scenario
 
-`Size >= M` の通常機能追加。実装前に Plan が必要で、実装後に intent / guide / reference を更新する。
+`Size >= M` の通常機能追加。実装前に Plan と QA 計画が必要で、確定した判断を intent に
+記録し、完了時に R2 が発動する。
 
 ## Initial State
 
-- `TODO.md` に `Size: M` 以上の Feat または Enhance タスクがある。
-- `Plan` は `_docs/plan/<Area>/<slug>/plan.md` を指す。
-- 対応 Plan ファイルが存在する。
+- `TODO.md` に `Size: M` 以上の Feat または Enhance タスクがある (`Size M` 以上は原則
+  `Risk: Medium` 以上)。
+- `Plan` は `_docs/plan/<Area>/<slug>/plan.md` を指し、対応ファイルが存在する。
+- `QA` は `_docs/qa/<Area>/<slug>/qa.md` を指す。
 
 ## Agent Task
 
-Plan の Scope / Non-Goals / Requirements / Test Plan に従って実装し、確定した判断を intent に記録する。
+`prep` で TODO / Plan / 既存 DEC を整列させ、qa.md を `qa_status: planned` で書き始めて
+から実装し、`close` で QA round・Intent Delta・R2 を記録してタスクの完了可否を判断する。
 
 ## Expected Documents Touched
 
 - `_docs/plan/<Area>/<slug>/plan.md`
 - `_docs/intent/<Area>/<slug>/decision.md`
-- `_docs/qa/<Area>/<slug>/test-plan.md`
-- `_docs/qa/<Area>/<slug>/verification.md`
-- `_docs/guide/<Area>/<slug>/usage.md`
-- `_docs/reference/<Area>/<slug>/reference.md`
+- `_docs/qa/<Area>/<slug>/qa.md`
+- 必要な場合のみ: `_docs/guide/<Area>/<slug>/usage.md` / `_docs/reference/<Area>/<slug>/reference.md`
 
 ## Expected QA Behavior
 
-- `Size >= M` requires Plan / Intent / QA.
-- QA test-plan is created before or during implementation.
+- qa.md は実装前に Acceptance Criteria と Checks 表を持つ (`qa_status: planned`)。
+- 実装後に Round を追記する: 実行したコマンド、AC 充足、Intent Delta、R2、
+  Transferable Principles、Verdict。planned の Checks を結果に合わせて書き換えない。
+- `Size >= M` のため R2 が発動する: round に `R2: PENDING` を書き、`TODO.md` に
+  R2 タスクを積む (同期形が使える環境では completion 前実行でもよい)。
 
 ## Expected Decision / Invariant Behavior
 
-- The feature's core design decisions have stable `DEC-*` IDs with `What`, `Why`, and `Change freedom`.
-- `INV-*` is added only for a condition that must survive every valid implementation; zero invariants is acceptable.
-- User-visible guarantees become ACs and are reflected in guide/reference only after verification.
-
-## Expected Test-plan Behavior
-
-- Test Matrix includes at least one AC row and an INV row only for each applicable invariant.
-- Test strategy uses automated tests or validators where practical.
-
-## Expected Verification Behavior
-
-- Verification records commands, manual QA if needed, AC coverage, affected DEC conformance, applicable INV coverage, and verdict.
-- TODO is removed only after PASS or accepted PARTIAL.
+- 実装前に既存 DEC を grep し、既存判断の再発明を避ける。
+- 機能の核となる設計判断は repo 一意の `DEC-*` として What / Why / Change freedom を持つ。
+- 判断を体現するコードに `// intent: DEC-xxx — <因果>` ポインタを置く。
+- INV は別実装でも守るべき結果がある場合だけ追加する。0 件でも正常。
+- guide / reference は必要な場合のみ作り、未実装仕様を書かない。
 
 ## Expected TODO.md Behavior
 
-- 実装完了後、対象タスクを `TODO.md` から削除する。
-- 追加作業は Backlog に別タスクとして追加する。
+- verdict が PASS または accepted PARTIAL になるまでタスクを削除しない。
+- R2 タスクと追加作業は Backlog に別 ID で追加する。
 
-## Expected Validation Outcome
+## Expected Validator Behavior
 
-- `validate-todo` が Plan path と Area 一致を確認する。
-- `validate-frontmatter` が新規 `_docs/` 文書の8必須項目を確認する。
-- `validate-doc-links` が references と Markdown リンクの存在を確認する。
-- `validate-qa` が QA docs と TODO の Risk / Intent 整合を確認する。
+- `validate-todo` が Plan / QA path と Area 一致を確認する。
+- `validate-qa` が round の必須フィールド、`qa_status` と verdict の一致、R2 の presence
+  (`Size >= M` での非発動宣言は不整合) を検査する。
+- `validate-intent` が DEC の必須構造と ID 一意性を確認する。
+- `validate-comments` がポインタ形式と散文コメント禁止を確認する。
 
 ## Failure Modes to Watch
 
+- 実装後に qa.md を一括で書き、planned だったかのように整形する。
 - `Plan` を `_docs/plan/<Area>/<slug>.md` のような非 canonical path に置く。
-- intent を作らずに plan を archives へ移す。
-- guide / reference に未実装仕様を書く。
+- DEC を作ったのに R2 を「非発動」として閉じる。
+- ポインタを置かず、判断がコードから到達不能になる。
+- guide / reference に未検証の仕様を書く。

@@ -2,61 +2,51 @@
 
 ## Scenario
 
-対応 intent が存在する一時ドキュメントを archives に移送する。
+完了タスクの plan を archives へ移送する。archive 対象は plan のみであり、恒久文書
+(intent / qa / guide / reference) は動かさない。
 
 ## Initial State
 
-- `_docs/intent/<Area>/<slug>/decision.md` が存在する。
-- `_docs/draft/<Area>/<slug>/notes.md`、`_docs/plan/<Area>/<slug>/plan.md`、または `_docs/survey/<Area>/<slug>/survey.md` が存在する。
-- intent の `references` に live path または archive target を追加できる状態。
+- `_docs/plan/<Area>/<slug>/plan.md` が存在し、対応タスクは verdict PASS で完了している。
+- `_docs/intent/<Area>/<slug>/decision.md` と `_docs/qa/<Area>/<slug>/qa.md` が存在する。
+- intent / qa の `references` が plan の live path を指している。
 
 ## Agent Task
 
-archive checklist を満たすことを確認し、対象一時ドキュメントを `_docs/archives/{draft,plan,survey}/<Area>/<slug>/...` に移送する。
+plan を `git mv` で `_docs/archives/plan/<Area>/<slug>/plan.md` へ移送し、参照リンクを
+archive 先へ更新する。
 
 ## Expected Documents Touched
 
-- `_docs/intent/<Area>/<slug>/decision.md`
-- `_docs/archives/draft/<Area>/<slug>/notes.md`
-- `_docs/archives/plan/<Area>/<slug>/plan.md`
-- `_docs/archives/survey/<Area>/<slug>/survey.md`
+- `_docs/archives/plan/<Area>/<slug>/plan.md` (移送先)
+- `_docs/intent/<Area>/<slug>/decision.md` / `_docs/qa/<Area>/<slug>/qa.md` (references 更新)
 
 ## Expected QA Behavior
 
-- QA docs are not moved to `_docs/archives/`.
-- Existing verification records remain linked from live QA paths.
+- intent / qa は移送しない。廃止が必要なら `status` で表す。
+- 移送自体は微小変更であり、round は `_docs/qa/<Area>/maintenance.md` へ追記する
+  (Intent Delta は理由付き `None:` か `applied:`)。
 
 ## Expected Decision / Invariant Behavior
 
-- DEC-001 records why permanent rationale and live QA evidence remain outside archives.
-- INV-001 (from DEC-001): intent documents are permanent and must not be archived.
-- INV-002 (from DEC-001): QA documents are persistent quality records and must not be archived.
-- INV-003 (from DEC-001): archive targets are limited to draft / plan / survey.
-
-## Expected Test-plan Behavior
-
-- No new QA test-plan is required for the archive operation unless the cleanup task is Risk >= Medium.
-- If a QA test-plan exists, it keeps root-relative references to the intent and archive-relevant documents.
-
-## Expected Verification Behavior
-
-- Verification records any archive checklist commands or manual checks.
-- `FAIL` / `BLOCKED` verification prevents TODO removal.
+- 移送は削除ではなく履歴保持のための移動である。`mv` / `git mv` のみを使う。
+- `_docs/archives/` 配下に plan 以外のディレクトリを作らない。
 
 ## Expected TODO.md Behavior
 
-- archive cleanup タスクが完了したら `TODO.md` から削除する。
+- archive 移送を含む cleanup タスクが完了したら `TODO.md` から削除する。
 - 残作業がある場合だけ Backlog に follow-up を追加する。
 
-## Expected Validation Outcome
+## Expected Validator Behavior
 
-- `validate-doc-links` が対応 intent の存在を確認する。
-- archive 済みの同一 `<Area>/<slug>` について、live path に同じ一時ドキュメントが残っていない。
+- `validate-doc-links` が更新後の references の存在を確認する (live path への
+  リンク切れを検出する)。
 - `validate-qa` が QA docs を archive 対象として扱わない。
 
 ## Failure Modes to Watch
 
 - `rm` / `git rm` を使う。
-- intent を archive する。
+- intent / qa / guide / reference を archive する。
 - live path と archive path に同じ文書を重複させる。
-- intent references を更新しない。
+- references を更新せず、リンク切れのまま残す。
+- 存在しない `_docs/archives/draft/` や `_docs/archives/survey/` を作る。

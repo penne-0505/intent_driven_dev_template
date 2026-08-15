@@ -28,8 +28,7 @@ repository の bootstrap の両方を扱う。
 
 - `docs-template.lock.json`
 - upstream delta と project customization の双方で解決が必要な配布ファイル
-- project の migration Plan / Intent / QA / verification（repository rules が
-  要求する場合）
+- project の migration Plan / Intent / qa.md（repository rules が要求する場合）
 - paired `.agents/skills/**` / `.claude/skills/**`（upstream delta に含まれる場合）
 
 ## Expected Provenance Behavior
