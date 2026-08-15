@@ -54,8 +54,10 @@ const QA_INVALID = [
 ] as const;
 const FRONTMATTER_VALID = [
   "_meta/validator-fixtures/frontmatter/valid/intent-schema.md",
+  "_meta/validator-fixtures/frontmatter/valid/intent-schema-v3.md",
   "_meta/validator-fixtures/frontmatter/valid/qa-schema.md",
   "_meta/validator-fixtures/frontmatter/valid/qa-schema-v3.md",
+  "_meta/validator-fixtures/frontmatter/valid/qa-schema-unified.md",
 ] as const;
 const FRONTMATTER_INVALID = [
   "_meta/validator-fixtures/frontmatter/invalid/duplicate-field.md",

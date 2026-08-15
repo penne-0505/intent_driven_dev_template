@@ -15,5 +15,6 @@ normal canonical-path rules while the fixture files remain under `_meta/`.
 The QA invalid fixture without `qa_schema` also verifies legacy compatibility:
 legacy plans still require an `INV-*`, while schema v2 accepts `None`.
 
-Frontmatter fixtures cover schema v2 markers (`intent_schema` / `qa_schema`),
+Frontmatter fixtures cover every accepted schema marker value (`intent_schema`
+2-3 / `qa_schema` 2-4, kept in sync with the intent and QA validators),
 duplicate fields, unknown keys, wrong types, and cross-kind marker placement.

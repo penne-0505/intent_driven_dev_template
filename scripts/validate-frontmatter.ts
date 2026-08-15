@@ -60,6 +60,11 @@ const DRAFT_ONLY_KEYS = new Set([
 ]);
 const QA_ONLY_KEYS = new Set(["qa_status", "risk", "qa_schema"]);
 const INTENT_ONLY_KEYS = new Set(["intent_schema"]);
+// schema marker の許容値は validate-qa.ts の QA_SCHEMAS / validate-intent.ts の
+// INTENT_SCHEMAS と同期させる。片側だけ更新すると、qa/intent validator が要求する
+// 現行 schema を frontmatter validator が拒否し、新規文書が書けなくなる。
+const QA_SCHEMA_VALUES: readonly number[] = [2, 3, 4];
+const INTENT_SCHEMA_VALUES: readonly number[] = [2, 3];
 
 const isStringArray = (val: unknown): val is string[] =>
   Array.isArray(val) && val.every((v) => typeof v === "string");
@@ -384,15 +389,29 @@ const run = async (): Promise<void> => {
     if ("qa_schema" in data) {
       if (!isQaPath(effectiveFile)) {
         fileErrors.push("qa_schema is allowed only on QA documents");
-      } else if (data.qa_schema !== 2 && data.qa_schema !== 3) {
-        fileErrors.push("qa_schema must be integer 2 or 3 when provided");
+      } else if (
+        typeof data.qa_schema !== "number" ||
+        !QA_SCHEMA_VALUES.includes(data.qa_schema)
+      ) {
+        fileErrors.push(
+          `qa_schema must be integer ${
+            QA_SCHEMA_VALUES.join(", ")
+          } when provided`,
+        );
       }
     }
     if ("intent_schema" in data) {
       if (!isIntentPath(effectiveFile)) {
         fileErrors.push("intent_schema is allowed only on intent documents");
-      } else if (data.intent_schema !== 2) {
-        fileErrors.push("intent_schema must be integer 2 when provided");
+      } else if (
+        typeof data.intent_schema !== "number" ||
+        !INTENT_SCHEMA_VALUES.includes(data.intent_schema)
+      ) {
+        fileErrors.push(
+          `intent_schema must be integer ${
+            INTENT_SCHEMA_VALUES.join(", ")
+          } when provided`,
+        );
       }
     }
     if (!isIntegerArray(data.related_prs)) {
