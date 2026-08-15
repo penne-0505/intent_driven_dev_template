@@ -44,8 +44,8 @@ const agentsMigration = await read(
 const claudeMigration = await read(
   ".claude/skills/docs-template-migration/SKILL.md",
 );
-const agentsCleanup = await read(".agents/skills/docs-cleanup/SKILL.md");
-const claudeCleanup = await read(".claude/skills/docs-cleanup/SKILL.md");
+const agentsClose = await read(".agents/skills/close/SKILL.md");
+const claudeClose = await read(".claude/skills/close/SKILL.md");
 const agentsGuide = await read("AGENTS.md");
 const quickstart = await read("QUICKSTART.md");
 const documentationOperations = await read(
@@ -59,17 +59,9 @@ const templateLockExample = await json("docs-template.lock.example.json") as {
 const intentTemplate = await read("_docs/standards/templates/intent.md");
 const qaTemplate = await read("_docs/standards/templates/qa.md");
 const qualityStandard = await read("_docs/standards/quality_assurance.md");
-const agentsPostImplementation = await read(
-  ".agents/skills/post-implementation/SKILL.md",
-);
-const agentsQaReview = await read(".agents/skills/qa-review/SKILL.md");
 const whyFirstSkills = [
-  "implementation-prep",
-  "docs-prep",
-  "qa-prep",
-  "test-maintenance",
-  "qa-review",
-  "post-implementation",
+  "prep",
+  "close",
 ] as const;
 
 const hookEvents = (config: HookConfig): string[] =>
@@ -106,8 +98,13 @@ assert(
 );
 
 assert(
-  contains(agentHook, "docs-inventory", "docs-cleanup", "qa-review"),
-  "workflow hook reminds agents about inventory, cleanup, and QA review",
+  contains(agentHook, "prep", "close", "docs-inventory"),
+  "workflow hook maps the four skills onto the work phases",
+);
+
+assert(
+  contains(agentHook, "close skill", "close で処理"),
+  "stop reminder points at the close skill as the handler",
 );
 
 assert(
@@ -128,11 +125,6 @@ assert(
 assert(
   agentsMigration === claudeMigration,
   "docs-template-migration skill is synced across .agents and .claude",
-);
-
-assert(
-  agentsCleanup === claudeCleanup,
-  "docs-cleanup skill is synced across .agents and .claude",
 );
 
 for (const skill of whyFirstSkills) {
@@ -205,8 +197,8 @@ assert(
 );
 
 assert(
-  contains(agentsCleanup, "Archive Checklist", "Do not archive"),
-  "docs-cleanup keeps archive boundary guidance",
+  contains(agentsClose, "Archive the Plan", "Never archive intent"),
+  "close skill keeps archive boundary guidance",
 );
 
 assert(
@@ -216,7 +208,8 @@ assert(
     "docs-template-migration",
     "release tag",
     "docs-template.lock.json",
-    "qa-review",
+    "`prep` skill",
+    "`close` skill",
     "// intent: DEC-00X",
     "// intent-invariant: INV-00X",
   ),
@@ -251,13 +244,12 @@ assert(
 
 assert(
   contains(
-    agentsPostImplementation,
-    "Session-End Reflection",
-    "Transferable Principles",
-    "None: <",
-  ) &&
-    contains(agentsQaReview, "Transferable Principles", "None: <reason>"),
-  "post-implementation and qa-review inline the transferable principle reflection",
+    agentsClose,
+    "(candidate)",
+    "None:",
+    "presented in the final summary",
+  ),
+  "close skill carries the reflection and candidate presentation duty",
 );
 
 assert(

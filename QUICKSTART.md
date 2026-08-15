@@ -67,7 +67,7 @@ hook は Tier 2 の optional amplifier です。規範は Markdown (AGENTS.md / 
 
 ### Documentation inventory
 
-久しぶりの再開、handoff 探索、または docs が形だけになっていないか確認したい場合は、`docs-inventory` skill を使います。`docs-inventory` は read-only の棚卸しであり、archive や TODO 削除は行いません。整理を実行する場合は、棚卸し結果を確認してから `docs-cleanup` に進みます。
+久しぶりの再開、handoff 探索、または docs が形だけになっていないか確認したい場合は、`docs-inventory` skill を使います。`docs-inventory` は read-only の棚卸しであり、archive や TODO 削除は行いません。整理を実行する場合は、棚卸し結果を確認してから作業タスクとして切り出します。
 
 ### 既存プロジェクトへ後付け導入する場合
 
@@ -105,11 +105,11 @@ AGENTS.md、TODO.md、_docs/documentation_guide.md、_docs/standards/ を読ん�
 ```
 
 ```text
-qa-prepを実行して、対象タスクのqa.mdをplannedで作成し、AC と Checks を書いてください。影響するDECのWhyとChange freedomも確認してください。
+prepを実行して、対象タスクの深さ (Plan / qa.md) を整え、影響するDECのWhyとChange freedomを確認してください。
 ```
 
 ```text
-実装後、qa-reviewを実行してQA roundを記録し、Intent Deltaとverdictを出してください。
+実装後、closeを実行してQA roundを記録し、Intent Deltaとverdictを出してください。
 ```
 
 ```text
