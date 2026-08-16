@@ -14,7 +14,7 @@ provenance を `docs-template.lock.json` に記録する。雛形は root の `d
   "schema": 1,
   "source": "https://github.com/penne-0505/intent_driven_dev_template.git",
   "revision": {
-    "tag": "v2.5.0",
+    "tag": "v2.5.1",
     "commit": "<tagが解決するfull 40-character commit SHA>"
   }
 }
@@ -44,6 +44,28 @@ provenance を `docs-template.lock.json` に記録する。雛形は root の `d
 
 `DD_SCOPE_BASE` は導入先 repository 内の validator 対象を決める project-local git ref であり、
 upstream template の採用 revision を示す値ではない。両者を兼用しない。
+
+## 採用側 toolchain との境界
+
+template が配布する実行コードは Deno を対象とする。`scripts/` の validator と `_meta/` の
+validator fixture がこれに当たる。いずれも採用先 repository の source tree 内へ置かれるため、
+採用先が自前の TypeScript / JavaScript toolchain を持つ場合、既定の glob (`**/*.ts` など) が
+これらを巻き込む。
+
+- **除外は採用側の責務**: 採用先の tsconfig、formatter、linter、bundler の対象から `scripts/` と
+  `_meta/` を除外する。template は採用先の設定ファイルを所有しないため、この除外を代行できない。
+- **template gate の射程**: `./scripts/check-docs.sh` は docs 規約と validator 自身の健全性だけを
+  検証する。`deno check` の対象は `scripts/` に限られ、`_meta/` の fixture は意図的に型検査しない
+  (壊れた入力を再現する fixture を含むため)。**採用先の build / typecheck / lint が通ることは、
+  この gate からは導けない。**
+- **fixture の設計制約**: fixture は validator への入力として壊れていてよいが、採用先の
+  typechecker に読まれるだけで新しい error を生む書き方をしない。抑制対象のない
+  `@ts-expect-error` のように、対象言語の処理系が単独で error にする記述を置かない。
+- **更新時の確認**: release 統合後は docs gate に加えて採用先自身の build / typecheck / lint を
+  実行し、upstream 由来のファイルが採用先の gate を壊していないことを確認する。
+
+理由: template の配布物は採用先の source tree に同居する。template 側の gate だけを緑にして
+完了と判定すると、採用先の build が壊れたまま release 統合が PASS になる。
 
 ## 段階的導入スコープ (Incremental Adoption)
 

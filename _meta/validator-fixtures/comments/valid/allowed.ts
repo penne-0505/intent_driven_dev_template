@@ -3,5 +3,5 @@
 // Covers AC-001
 export const answer = (): number => {
   // @ts-expect-error fixture exercises pragma allowance
-  return 42;
+  return "42";
 };

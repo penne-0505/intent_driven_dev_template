@@ -46,6 +46,7 @@ find starter -mindepth 1 -maxdepth 1 -exec mv -f {} . \; && rmdir starter
 6. すべての変更で、実装後に QA round (Intent Delta / verdict) を記録する。微小変更は `_docs/qa/<Area>/maintenance.md` へ数行の round を追記するだけでよい。
 7. 一回限りの実装プロンプトを root に残さない。残す必要がある場合は `_meta/prompts/` 等に移し、非運用の履歴資料として明記する。
 8. tagged release から開始する場合は `docs-template.lock.example.json` を `docs-template.lock.json` としてコピーし、採用 tag を解決した full SHA を記録する。
+9. プロジェクトが自前の TypeScript / JavaScript toolchain を持つ場合、tsconfig・formatter・linter・bundler の対象から `scripts/` と `_meta/` を除外する。これらは Deno を対象とした配布物であり、既定の glob (`**/*.ts` など) が巻き込むと採用先の build が壊れる。詳細は [採用側 toolchain との境界](_docs/standards/template_operations.md) を参照。
 
 ### Agent lifecycle hooks
 
@@ -165,6 +166,8 @@ deno run --allow-read scripts/test-agent-workflow-smoke.ts
 ```
 
 `./scripts/check-docs.sh` は Deno validator を通します。**Deno があれば十分**で、CI も同一 script を通すため、手元で pass すれば CI も同じ結果になります。
+
+ただしこの script が検証するのは docs 規約と validator 自身の健全性だけです。プロジェクト自身の build / typecheck / lint / test は別の gate であり、`check-docs.sh` の PASS からは導けません。template release を統合したあとは両方を走らせてください（[採用側 toolchain との境界](_docs/standards/template_operations.md)）。
 
 ## 6. 配布用 ZIP
 
