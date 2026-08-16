@@ -10,8 +10,12 @@ Run after implementation, before the final response. The norms live in
 
 ## Procedure
 
-1. **Verify.** Run the planned checks and `./scripts/check-docs.sh`. Compare the diff
-   against the request, TODO Goal, and Acceptance Criteria.
+1. **Verify.** Run the planned checks, `./scripts/check-docs.sh`, and the project's own
+   build / typecheck / lint / test gates. The wrapper covers documentation contracts and
+   the validators' own health only — a green wrapper is not evidence that the project
+   still builds, and template-shipped files land inside the project's tree. Report the
+   documentation gate and the project gates separately. Compare the diff against the
+   request, TODO Goal, and Acceptance Criteria.
 2. **R1 review** (workflow.md § R1): switch to a reviewer stance — or hand to a
    different model when available — and check: DEC conformance, pointer placement,
    whether a `None:` Intent Delta is actually justified.

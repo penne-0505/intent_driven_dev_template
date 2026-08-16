@@ -30,3 +30,7 @@ fi
 deno run --allow-read --allow-write --allow-env --allow-run scripts/test-validators.ts
 deno run --allow-read --allow-write --allow-env --allow-run scripts/test-agent-workflow-hook.ts
 deno run --allow-read scripts/test-agent-workflow-smoke.ts
+
+# 射程の明示。exit 0 を「完了の根拠」へ流用させないための最後の 1 行。
+echo "check-docs: documentation contracts and validator health only."
+echo "check-docs: the project's own build / typecheck / lint / test gates are separate — run them too."
