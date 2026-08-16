@@ -250,7 +250,7 @@ const acceptanceCriteriaIds = (value: string | undefined): string[] =>
   [...(value ?? "").matchAll(/\bAC-\d{3}\b/g)].map((match) => match[0]);
 
 const titleParts = (title: string): TitleParts | null => {
-  const match = title.match(/^\[([A-Za-z]+)\]\s+(.+)$/);
+  const match = title.match(/^\[([A-Za-z][A-Za-z0-9]*)\]\s+(.+)$/);
   if (!match) return null;
   return { category: match[1], title: match[2].trim() };
 };

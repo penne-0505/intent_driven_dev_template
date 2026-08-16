@@ -14,7 +14,7 @@ provenance を `docs-template.lock.json` に記録する。雛形は root の `d
   "schema": 1,
   "source": "https://github.com/penne-0505/intent_driven_dev_template.git",
   "revision": {
-    "tag": "v2.5.1",
+    "tag": "v2.5.2",
     "commit": "<tagが解決するfull 40-character commit SHA>"
   }
 }

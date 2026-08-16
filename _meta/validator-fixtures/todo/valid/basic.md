@@ -2,7 +2,7 @@
 
 ## 0. System Metadata
 
-- **Current Max ID**: `Next ID No: 3`
+- **Current Max ID**: `Next ID No: 4`
 
 ## Inbox
 
@@ -54,6 +54,29 @@
   - Notes: Medium risk requires Plan / Intent / QA.
 - **Plan**: _docs/plan/Template/validator-fixture-self-test/plan.md
 - **Intent**: _docs/intent/Template/validator-fixture-self-test/decision.md
+- **QA**: _docs/qa/Template/validator-fixture-self-test/qa.md
+
+### Template-R2-3: [R2] Reconstruct the why of the fixture self-test change
+
+- **Title**: [R2] Reconstruct the why of the fixture self-test change
+- **ID**: Template-R2-3
+- **Priority**: P2
+- **Size**: XS
+- **Risk**: Low
+- **Area**: Template
+- **Dependencies**: []
+- **Goal**: The reconstruction test for Template-Enhance-2 is answered and its gaps are recorded.
+- **Acceptance Criteria**:
+  - AC-001: The four fixed questions are answered from the diff and in-repo docs only.
+  - AC-002: Results and gaps are appended to the QA round.
+- **Steps**:
+  1. [ ] Answer the fixed questions.
+  2. [ ] Append results and gaps.
+- **Description**:
+  - Context: The `R2` category carries a digit; this fixture keeps the Title parser accepting it.
+  - Notes: A reconstruction task is created whenever R2 fires.
+- **Plan**: None
+- **Intent**: None
 - **QA**: _docs/qa/Template/validator-fixture-self-test/qa.md
 
 ## Ready
