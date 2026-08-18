@@ -24,8 +24,7 @@
 
 ## Expected QA Behavior
 
-- round は数行でよいが、Commands / AC Coverage / Intent Delta / R2 / Transferable
-  Principles / Verdict を欠かさない。
+- round は数行でよいが、Commands / AC Coverage / Intent Delta / R2 / Verdict を欠かさない。
 - Intent Delta は自明修正なら理由付き `None:` か `applied: DEC-xxx`。裸の `None` は不可。
 - R2 は発動条件 (DEC 新設 / `Size >= M` / `Risk High`) に該当しないため「非発動」。
 - Regression risk がある場合は regression test または no-test rationale を残す。

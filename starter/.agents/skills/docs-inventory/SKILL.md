@@ -24,7 +24,6 @@ archive, delete, or rewrite docs unless the user explicitly asks for follow-up i
 2. **Map active work.** Classify each TODO task as ready, blocked, underspecified, or stale.
    Surface pending R2 tasks and their age.
 3. **Map durable records.** Inspect `_docs/intent/**` and `_docs/qa/**`:
-   - unratified `(candidate)` DECs — count and age (they await the user's ratification)
    - legacy schema documents (no marker / old numbers) — the visible-incomplete backlog
    - durable docs describing behavior that code or QA rounds no longer support
 4. **Check the code edge.** Sample intent pointers: do the referenced DECs still explain the
@@ -36,9 +35,9 @@ archive, delete, or rewrite docs unless the user explicitly asks for follow-up i
 
 - Overall verdict: `Healthy`, `Needs attention`, or `Drifting`.
 - Findings ordered by operational impact.
-- Counts: pending R2 tasks, unratified candidates, legacy schema docs.
+- Counts: pending R2 tasks, legacy schema docs.
 - Recommended next actions: one to three only.
-- Owner decisions needed (e.g. candidates awaiting ratification).
+- Owner decisions needed.
 
 ## Boundaries
 

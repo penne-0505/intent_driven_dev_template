@@ -80,9 +80,11 @@ surprising-but-stable structure has either a candidate entry or an explicit
 Apply the knowledge 4-way split and the decomposition rule
 (workflow.md § 何を intent に書き、何を書かないか): why → DEC; decision
 history → the DEC's history / `Revisit when`; pure how → discard; durable
-mechanism explanation → `_docs/reference/`. Route cross-cutting patterns to
-`_docs/intent/<Area>/conventions/decision.md` as candidate-marked DECs —
-ratification stays with the user (workflow.md § 昇格).
+mechanism explanation → `_docs/reference/`. Cross-cutting whys are recorded
+as ordinary DECs in the most relevant slug's decision.md, with the
+cross-cutting nature stated inside the DEC body. Anything that amounts to a
+norm proposal (belongs in AGENTS.md / standards) is presented to the owner
+as a proposal — never written as a DEC by the agent.
 
 Completion criterion: every candidate has exactly one destination or is
 explicitly discarded as how.

@@ -3,7 +3,7 @@ title: "QA rounds: Fixture area maintenance"
 status: active
 qa_status: in-progress
 risk: Low
-qa_schema: 4
+qa_schema: 5
 created_at: 2026-08-15
 updated_at: 2026-08-15
 references: []
@@ -27,5 +27,4 @@ fixture_path: _docs/qa/Fixture/maintenance.md
 - **AC Coverage**: AC-001 covered
 - **Intent Delta**: None: typo fix with no decision-bearing branch
 - **R2**: 非発動
-- **Transferable Principles**: None: mechanical fix following existing patterns
 - **Verdict**: PASS

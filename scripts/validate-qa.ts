@@ -62,11 +62,10 @@ const TODO_FILE = (() => {
     return "TODO.md";
   }
 })();
-const QA_SCHEMAS = [2, 3, 4] as const;
-// qa_schema 3 = 2 + verification の Transferable Principles (session-end reflection)
-// qa_schema 4 = 統合 qa.md (Checks + 追記専用 Rounds、Intent Delta / R2 / TP / Verdict)
-const REFLECTION_SCHEMA = 3;
-const UNIFIED_SCHEMA = 4;
+const QA_SCHEMAS = [2, 3, 4, 5] as const;
+// qa_schema 5 = 統合 qa.md (Checks + 追記専用 Rounds、Intent Delta / R2 / Verdict)。
+// Transferable Principles は撤去 (issue #17): 節があっても無視、無くても error にしない。
+const UNIFIED_SCHEMA = 5;
 const isWhyFirstSchema = (value: YamlValue | undefined): boolean =>
   QA_SCHEMAS.some((schema) => schema === value);
 const RISKS = ["Low", "Medium", "High", "Critical"] as const;
@@ -359,9 +358,9 @@ const validateUnifiedQa = (
 ): void => {
   if (attrs.qa_schema !== UNIFIED_SCHEMA) {
     add(
-      errors,
+      warnings,
       file,
-      `qa.md / maintenance.md require qa_schema: ${UNIFIED_SCHEMA}`,
+      `legacy qa.md: migrate to the unified qa.md (qa_schema: ${UNIFIED_SCHEMA}) when its meaning next changes`,
     );
   }
 
@@ -452,18 +451,6 @@ const validateUnifiedQa = (
           }
         }
       }
-    }
-    const principles = block.match(
-      /\*\*Transferable Principles\*\*:\s*(.+)$/m,
-    )?.[1]?.trim();
-    if (!principles) {
-      add(errors, file, `${label}: missing Transferable Principles`);
-    } else if (/^None\s*$/i.test(principles)) {
-      add(
-        errors,
-        file,
-        `${label}: Transferable Principles must be a candidate or "None: <reason>"`,
-      );
     }
     const verdict = block.match(/\*\*Verdict\*\*:\s*(\S+)/m)?.[1];
     if (!verdict || !(VERDICTS as readonly string[]).includes(verdict)) {
@@ -648,38 +635,6 @@ const isExplicitNone = (content: string): boolean => {
   return /^(?:[-*]\s*)?(None|N\/A|なし)$/i.test(cleaned);
 };
 
-// session-end reflection の証跡は candidate か理由付き None のみ受理する。
-// 裸の None を弾くのは「無言の skip」と「検討したが無かった」を構造で区別するため。
-// 中身の質は判定しない (user review の領分)。
-const validateTransferablePrinciples = (
-  file: string,
-  src: string,
-  errors: ValidationItem[],
-): void => {
-  const content = sectionContent(src, "Transferable Principles");
-  if (content === null) {
-    add(errors, file, "missing heading: Transferable Principles");
-    return;
-  }
-  const lines = stripCodeBlocks(content)
-    .replace(/<!--[\s\S]*?-->/g, "")
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter((line) => line !== "");
-  const isBareNone = (line: string): boolean =>
-    /^(?:[-*]\s*)?(None|N\/A|なし)[.。]?$/i.test(line);
-  const hasCandidate = lines.some(
-    (line) => /^[-*]\s+\S/.test(line) && !isBareNone(line),
-  );
-  const hasReasonedNone = lines.some((line) => /^None:\s*\S/i.test(line));
-  if (hasCandidate || hasReasonedNone) return;
-  add(
-    errors,
-    file,
-    'Transferable Principles must record candidates ("- TP: ...") or an explicit "None: <reason>"',
-  );
-};
-
 const validateVerification = ({
   file,
   src,
@@ -800,10 +755,6 @@ const validateVerification = ({
       file,
       "Commands Run or Manual QA Results must contain substantive evidence",
     );
-  }
-
-  if (attrs.qa_schema === REFLECTION_SCHEMA) {
-    validateTransferablePrinciples(file, src, errors);
   }
 };
 
@@ -983,7 +934,7 @@ const run = async (): Promise<void> => {
       add(
         warnings,
         file,
-        "legacy test-plan.md: migrate to the unified qa.md (qa_schema: 4) when its meaning next changes",
+        "legacy test-plan.md: migrate to the unified qa.md (qa_schema: 5) when its meaning next changes",
       );
       await validateTestPlan({
         file,
@@ -998,7 +949,7 @@ const run = async (): Promise<void> => {
       add(
         warnings,
         file,
-        "legacy verification.md: migrate to the unified qa.md (qa_schema: 4) when its meaning next changes",
+        "legacy verification.md: migrate to the unified qa.md (qa_schema: 5) when its meaning next changes",
       );
       validateVerification({ file, src, attrs, area, slug, errors });
     }

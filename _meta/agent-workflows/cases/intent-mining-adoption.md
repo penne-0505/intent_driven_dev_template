@@ -20,7 +20,9 @@ DEC として存在しない。agent はこれから触る領域の why を `int
 ## Expected Documents Touched
 
 - `_docs/intent/<Area>/<slug>/decision.md` (採掘された DEC、証拠引用付き)
-- 横断 pattern の場合: `_docs/intent/<Area>/conventions/decision.md` (candidate マーク)
+- 横断 pattern の場合: 最も関連する slug の `decision.md` に通常の DEC として記録し、
+  DEC 本文に横断性を明記する。規範提案 (AGENTS.md / standards に属するもの) は
+  owner への提案として提示し、agent が DEC として書かない。
 - 対象コード (ポインタ設置と、DEC が置き換えた散文コメントの同一編集内での削除)
 - `_docs/qa/.../` の round (Intent Delta: `DEC-xxx 新設`、R2 発動)
 
@@ -35,7 +37,8 @@ DEC として存在しない。agent はこれから触る領域の why を `int
 - すべての採掘 DEC は証拠 (commit SHA / PR / 文書 / 置き換えた comment) を Why に引用する。
 - 構造からの推測しかない候補は DEC にせず、owner への質問にする。
 - 一括採掘をしない。未採掘領域は見える未完了として報告する。
-- 横断 pattern は conventions へ candidate として置き、規範化は user のマーク外しを待つ。
+- 横断 pattern は通常の DEC として記録し、横断性は後続からの `applied:` 引用で表現する。
+  規範提案は owner への提案として提示し、agent が DEC として書かない。
 
 ## Expected TODO.md Behavior
 

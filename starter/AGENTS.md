@@ -34,8 +34,6 @@
 
 - 文書の置き場・frontmatter・ライフサイクルは [document contracts](_docs/standards/document_contracts.md) に従う。
 - 完了履歴の正典は QA round (`_docs/qa/.../qa.md` / `maintenance.md`)。TODO に Done セクションを作らない。
-- 教訓 (transferable principle) の candidate は conventions へ candidate マーク付きで追記できるが、
-  規範化 (マークを外す操作) は user のみが行う。candidate は最終報告で定型提示する。
 - 久しぶりの再開、handoff 探索、現状把握、docs が形骸化していないかの確認では `docs-inventory` skill を使う。
 - upstream template を推奨 release tag へ更新する場合は `docs-template-migration` skill を使い、
   moving branch tip ではなく tag と full SHA を固定し、`docs-template.lock.json` を互換移行の検証後に更新する。

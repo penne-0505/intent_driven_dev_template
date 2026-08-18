@@ -244,25 +244,19 @@ assert(
 assert(
   contains(
     qaTemplate,
-    "qa_schema: 4",
+    "qa_schema: 5",
     "## Acceptance Criteria",
     "## Checks",
     "## Rounds",
     "Intent Delta",
-    "Transferable Principles",
     "None:",
   ),
-  "unified QA template carries checks, rounds, intent delta, and reflection",
+  "unified QA template carries checks, rounds, and intent delta",
 );
 
 assert(
-  contains(
-    agentsClose,
-    "(candidate)",
-    "None:",
-    "presented in the final summary",
-  ),
-  "close skill carries the reflection and candidate presentation duty",
+  !contains(agentsClose, "(candidate)", "Transferable Principles"),
+  "close skill no longer carries the transferable-principle reflection duty",
 );
 
 assert(

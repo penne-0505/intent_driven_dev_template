@@ -1,6 +1,6 @@
 ---
 name: close
-description: Use after implementation work — records the QA round (Intent Delta, R2, principles, verdict), reviews the change, and decides task completion.
+description: Use after implementation work — records the QA round (Intent Delta, R2, verdict), reviews the change, and decides task completion.
 ---
 
 # Close
@@ -25,15 +25,12 @@ Run after implementation, before the final response. The norms live in
    write `R2: PENDING` and add an R2 task to TODO.md — or run it synchronously if this
    harness can spawn an isolated fresh-context call (pass only the commit range and QA doc
    path; grade the blind answers before completion).
-5. **Reflect** (workflow.md § transferable principle): record a candidate or a
-   reasoned `None:`. Candidates go to conventions with the `(candidate)` mark and must be
-   presented in the final summary (principle / origin / impact / risks / recommendation).
-6. **Decide completion.** `PASS` (or accepted `PARTIAL`) → remove the TODO task, add
+5. **Decide completion.** `PASS` (or accepted `PARTIAL`) → remove the TODO task, add
    follow-ups and the R2 task. `FAIL` / `BLOCKED` → the task stays.
-7. **Archive the Plan** if one exists: `git mv` to `_docs/archives/plan/<Area>/<slug>/`
+6. **Archive the Plan** if one exists: `git mv` to `_docs/archives/plan/<Area>/<slug>/`
    and update references. Never archive intent / QA / guide / reference — mark obsolete
    ones `status: superseded` / `obsolete` instead.
-8. **Summarize**: validations actually run, verdict, candidates presented.
+7. **Summarize**: validations actually run, verdict.
 
 ## Turn-End Conduct
 

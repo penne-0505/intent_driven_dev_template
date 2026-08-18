@@ -1,8 +1,8 @@
 # Intent-Driven Workflow Standard
 
 本書は intent-driven development の憲法である。想定読者は、毎回コンテクストが分離された状態で
-作業を始める coding agent。人間の役割は本書自体の改訂と、明示された批准操作に限られる。
-構成は agent がループを回る時系列に沿う: 変更の前 → 実装中 → 変更の後 → レビュー → 昇格。
+作業を始める coding agent。人間の役割は本書自体の改訂に限られる。
+構成は agent がループを回る時系列に沿う: 変更の前 → 実装中 → 変更の後 → レビュー。
 文書種別ごとの契約 (path / frontmatter / status) は `document_contracts.md`、テンプレートの
 導入・更新は `template_operations.md` を参照。設計判断の一次資料は GitHub Issue #11 と
 本書を改訂する commit / PR に残す。
@@ -19,6 +19,8 @@ TODO (Acceptance Criteria) → 実装 → Intent Delta の宣言 → QA round �
   1. `DEC-xxx 新設` — 新しい設計判断を intent に記録した。
   2. `applied: DEC-xxx` — 既存の判断の適用で説明が閉じる。
   3. `None: <理由>` — 判断を要する分岐がなかった。理由のない裸の None は不可。
+- 意図した形状からの逸脱を修復する変更は、`applied:` / `None:` で閉じない。修復が明らかにした
+  判断 (逸脱の原因・守るべき性質) を DEC の新設・更新として記録し、修復した箇所にポインタを置く。
 - 自明な変更に DEC を作る必要はない。禁止されるのは **無言の省略** だけである。理由付き None は
   「検討したが判断はなかった」という反証可能な主張であり、review と後からの監査の対象になる。
 - presence が無条件だからこそ、validator は「diff があるのに宣言がない」を意味判断なしに
@@ -156,7 +158,6 @@ QA の計画と検証記録は、slug ごとの単一文書 `qa.md` に統合さ
 - AC の充足状況
 - **Intent Delta** (三値)
 - **R2** (発動条件を満たす場合のみ: verdict / PENDING / gap。非該当なら「非発動」)
-- **Transferable Principles** (candidate または理由付き None)
 - **Verdict** (`PASS` / `PARTIAL` / `FAIL` / `BLOCKED`)
 
 Rounds は追記専用である。過去の round (特に planned の Checks) を結果に合わせて書き換えない。
@@ -215,24 +216,6 @@ valid 文書を通す probe も実装済み検査の fixture も「主張され�
   渡して completion 前に実行してよい。この場合、実装 agent が正解 (真の why) と突き合わせて
   採点できるため、より強い形になる。固定設問に実装セッションの文脈を追記してはならない。
 - validator は R2 フィールドの presence と PENDING の滞留を検査する。中身の質は R2 自体が判定する。
-
-## 昇格 (transferable principle)
-
-特定の feature に閉じない一般則 (transferable principle) は、以後のすべての agent の判断を変える、
-このシステムで最も影響半径の大きい書き込みである。
-
-- agent は作業終了時に「このセッション限りではない学びがあるか」を必ず確認し、QA round に
-  candidate または理由付き `None:` を記録する。裸の `None` は不可。
-- candidate は `_docs/intent/<Area>/conventions/decision.md` へ **candidate マーク付きの DEC**
-  として直接追記してよい。candidate マークは「未批准であり、規則として扱ってはならない」を意味する。
-- **規範化は user がマークを外す明示操作のみ**で行われる。agent が自分でマークを外してはならない。
-  validator は candidate 状態の DEC を参照するコード内ポインタを error にする
-  (未批准原則の実効化を防ぐ)。
-- candidate を記録した agent は、最終報告で必ず定型提示を行う:
-  1. 原則の本文 (1–2 行) / 2. 出所 (何がきっかけか) / 3. 採用時の影響範囲 /
-  4. 採用のリスク・反例になりそうなケース / 5. agent 自身の推奨と理由。
-- 未批准 candidate は可視化され続ける: validator が件数を warning で報告し、docs-inventory が
-  git 履歴から経過日数を報告する (督促するがブロックしない)。
 
 ## 基盤原則
 

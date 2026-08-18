@@ -3,7 +3,7 @@ title: "QA: Unified fixture"
 status: active
 qa_status: verified
 risk: Medium
-qa_schema: 4
+qa_schema: 5
 created_at: 2026-08-15
 updated_at: 2026-08-15
 references:
@@ -38,5 +38,4 @@ fixture_path: _docs/qa/Fixture/unified/qa.md
 - **AC Coverage**: AC-001 verified
 - **Intent Delta**: applied: DEC-101
 - **R2**: 非発動
-- **Transferable Principles**: None: fixture exercises existing schema only
 - **Verdict**: PASS
