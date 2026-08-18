@@ -8,7 +8,6 @@
 ```text
 _docs/plan/<Area>/<slug>/plan.md            # Size >= M のみ
 _docs/intent/<Area>/<slug>/decision.md      # 設計判断 (DEC)。恒久
-_docs/intent/<Area>/conventions/decision.md # 横断的な原則 (candidate 含む)
 _docs/qa/<Area>/<slug>/qa.md                # QA 計画 + 検証記録。恒久
 _docs/qa/<Area>/maintenance.md              # 微小変更の round 集約
 _docs/guide/<Area>/<slug>/usage.md          # 必要時のみ
@@ -35,7 +34,7 @@ references は root-relative canonical path を推奨する。draft / survey デ
 `failed` \| `blocked`) と `risk` (`Low` \| `Medium` \| `High` \| `Critical`) を必須とする。
 
 schema marker (新規作成時): `_docs/intent/**` は `intent_schema: 3`、`_docs/qa/**` は
-`qa_schema: 4`。marker のない文書・旧番号の文書の扱いは `workflow.md` の schema 移行を参照。
+`qa_schema: 5`。marker のない文書・旧番号の文書の扱いは `workflow.md` の schema 移行を参照。
 `draft_status` は legacy 文書の受理のためだけに許可される (新規文書では書かない)。
 
 ## 種別契約
@@ -46,7 +45,6 @@ schema marker (新規作成時): `_docs/intent/**` は `intent_schema: 3`、`_do
   Consequences / Impact / Quality Implications / Intent-derived Invariants / Rollback / Follow-ups。
 - DEC entry は `### DEC-<番号>: <title>` 見出し + What / Why / Change freedom (必須)。
   ID はリポジトリ一意。書き方と 4 分法は `workflow.md` を参照。
-- conventions 文書のみ `### DEC-<番号> (candidate): <title>` を許す (未批准マーク)。
 - archive しない。obsolete になったら status で表す。
 
 ### qa (`qa.md` / `maintenance.md`) — 恒久

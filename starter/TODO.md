@@ -127,7 +127,6 @@
 ```text
 _docs/plan/<Area>/<slug>/plan.md
 _docs/intent/<Area>/<slug>/decision.md
-_docs/intent/<Area>/conventions/decision.md
 _docs/qa/<Area>/<slug>/qa.md
 _docs/qa/<Area>/maintenance.md
 _docs/guide/<Area>/<slug>/usage.md

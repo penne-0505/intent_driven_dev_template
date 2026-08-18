@@ -114,7 +114,7 @@ prepを実行して、対象タスクの深さ (Plan / qa.md) を整え、影響
 ```
 
 ```text
-docs-inventoryを実行して、TODO、intent、QA、未批准candidate、legacy文書の棚卸しをしてください。自動整理はせず、次に判断すべき点を1-3件に絞ってください。
+docs-inventoryを実行して、TODO、intent、QA、legacy文書の棚卸しをしてください。自動整理はせず、次に判断すべき点を1-3件に絞ってください。
 ```
 
 ```text

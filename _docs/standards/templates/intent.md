@@ -27,9 +27,6 @@ related_prs: []
 - **Why**: 解決する問題、守る性質、避ける失敗との因果
 - **Change freedom**: Why を保つ限り変更できる実装方式・値・構造
 <!-- Optional fields: `- **Why not**: 一見妥当に見える不採用案と、その案では目的を満たせない理由`, `- **Revisit when**: 再検討を可能にする証拠・条件` -->
-<!-- conventions への transferable principle candidate は
-     `### DEC-XXX (candidate): ...` の形で追記し、批准まで規則として扱わない。
-     candidate マークを外せるのは user のみ。 -->
 
 ## Consequences / Impact
 - 影響範囲（API/データ/セキュリティ/パフォーマンス など）

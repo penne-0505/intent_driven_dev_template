@@ -14,7 +14,7 @@
 - **すべての変更**が最小ループを回ります: `TODO (AC) → 実装 → Intent Delta の宣言 → QA round の記録`。省略できるのは深さであって、存在ではありません。
 - 設計判断はリポジトリ一意の ID を持つ `DEC` として `_docs/intent/` に記録され、コードからは `// intent: DEC-xxx — <理由>` のポインタコメントだけで到達します。散文コメントは validator が禁止します。
 - QA は計画と検証記録が一体の `qa.md` 一種類で、微小変更は Area ごとの集約ファイルに数行の round を追記するだけです。
-- 品質は機械 (validator が構造を強制) と agent review (R1 妥当性 / R2 再構成テスト) が担い、人間は標準の改訂と原則の批准だけを行います。
+- 品質は機械 (validator が構造を強制) と agent review (R1 妥当性 / R2 再構成テスト) が担い、人間は標準の改訂だけを行います。
 
 人がサイクルを回すことも出来ますが、基本的には**Claude Codeなどのコーディングエージェント**が、この規則に従って自律的な開発を行うために設計されました。
 
@@ -39,7 +39,7 @@
 
 Codex / Claude Code 向けの lifecycle hook を同梱しています。hook は optional な増幅であり、規範の代替ではありません（規範は Markdown 層に、機械強制は Deno validator にあります）。SessionStart はワークフローの想起、PreToolUse は恒久削除・秘密ファイル操作の安全ブロック、Stop はループ関連の未コミット変更があるときの一言想起のみを行います。利用時は各 agent の `/hooks` で内容を確認して信頼してください。
 
-久しぶりの再開や handoff 探索では、`docs-inventory` skill が TODO、intent、QA、未批准 candidate、legacy 文書の棚卸しを行います。
+久しぶりの再開や handoff 探索では、`docs-inventory` skill が TODO、intent、QA、legacy 文書の棚卸しを行います。
 
 ## カスタマイズ
 
@@ -69,7 +69,7 @@ context.
 - **Every change** runs the minimal loop: `TODO (AC) → implement → declare the Intent Delta → record a QA round`. Only depth varies; presence does not.
 - Design decisions are recorded as `DEC` entries with repository-unique IDs under `_docs/intent/`, reachable from code exclusively through pointer comments (`// intent: DEC-xxx — <reason>`). Prose comments are rejected by a validator.
 - QA planning and verification live in one `qa.md` per feature; small changes append a few-line round to a per-area rolling file.
-- Quality is held by machines (validators enforce structure) and agent review (R1 validity / R2 reconstruction test); humans only revise the standards and ratify cross-cutting principles.
+- Quality is held by machines (validators enforce structure) and agent review (R1 validity / R2 reconstruction test); humans only revise the standards.
 
 While humans can run the cycle, it is primarily designed **for coding agents like Claude Code** to autonomously develop according to these rules.
 

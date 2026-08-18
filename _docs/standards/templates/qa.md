@@ -3,7 +3,7 @@ title: "QA: <Feature>"
 status: active
 qa_status: planned
 risk: Medium
-qa_schema: 4
+qa_schema: 5
 created_at: YYYY-MM-DD
 updated_at: YYYY-MM-DD
 references:
@@ -55,7 +55,5 @@ related_prs: []
 - **Intent Delta**: DEC-xxx 新設 | applied: DEC-xxx | None: <理由>
 - **R2**: PENDING | RECONSTRUCTED | gap: <...> | 非発動
   <!-- 発動条件: DEC 新設 / Size >= M / Risk High。非該当なら「非発動」と書く。 -->
-- **Transferable Principles**: None: <理由>
-  <!-- candidate がある場合は 1-3 行で書き、conventions へ candidate マーク付きで追記し、最終報告で定型提示する。 -->
 - **Verdict**: PASS | PARTIAL | FAIL | BLOCKED
   <!-- PARTIAL / FAIL / BLOCKED では残リスクと次アクションを必須で書く。 -->
