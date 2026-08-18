@@ -19,7 +19,7 @@
 
 ## Expected Documents Touched
 
-- `_docs/qa/<Area>/<slug>/qa.md` (新規、`qa_schema: 4`)
+- `_docs/qa/<Area>/<slug>/qa.md` (新規、`qa_schema: 5`)
 - 必要な場合のみ `TODO.md` (QA path の確定)
 
 ## Expected QA Behavior

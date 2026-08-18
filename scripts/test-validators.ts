@@ -56,6 +56,7 @@ const FRONTMATTER_VALID = [
   "_meta/validator-fixtures/frontmatter/valid/intent-schema-v3.md",
   "_meta/validator-fixtures/frontmatter/valid/qa-schema.md",
   "_meta/validator-fixtures/frontmatter/valid/qa-schema-v3.md",
+  "_meta/validator-fixtures/frontmatter/valid/qa-schema-v4.md",
   "_meta/validator-fixtures/frontmatter/valid/qa-schema-unified.md",
 ] as const;
 const FRONTMATTER_INVALID = [

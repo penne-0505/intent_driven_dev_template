@@ -16,5 +16,5 @@ The QA invalid fixture without `qa_schema` also verifies legacy compatibility:
 legacy plans still require an `INV-*`, while schema v2 accepts `None`.
 
 Frontmatter fixtures cover every accepted schema marker value (`intent_schema`
-2-3 / `qa_schema` 2-4, kept in sync with the intent and QA validators),
+2-3 / `qa_schema` 2-5, kept in sync with the intent and QA validators),
 duplicate fields, unknown keys, wrong types, and cross-kind marker placement.

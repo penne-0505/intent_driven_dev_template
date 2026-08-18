@@ -63,7 +63,7 @@ const INTENT_ONLY_KEYS = new Set(["intent_schema"]);
 // schema marker の許容値は validate-qa.ts の QA_SCHEMAS / validate-intent.ts の
 // INTENT_SCHEMAS と同期させる。片側だけ更新すると、qa/intent validator が要求する
 // 現行 schema を frontmatter validator が拒否し、新規文書が書けなくなる。
-const QA_SCHEMA_VALUES: readonly number[] = [2, 3, 4];
+const QA_SCHEMA_VALUES: readonly number[] = [2, 3, 4, 5];
 const INTENT_SCHEMA_VALUES: readonly number[] = [2, 3];
 
 const isStringArray = (val: unknown): val is string[] =>
