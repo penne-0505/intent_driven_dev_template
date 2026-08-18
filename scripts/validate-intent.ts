@@ -192,11 +192,11 @@ const validateDecisionDoc = (
       add(errors, file, `duplicate decision ID: ${decision.id}`);
     }
     decisionIds.add(decision.id);
-    if (decision.candidate && !file.includes("/conventions/")) {
+    if (decision.candidate) {
       add(
         errors,
         file,
-        `${decision.id}: candidate mark is only allowed in conventions decision docs`,
+        `${decision.id}: the (candidate) mark was removed (issue #17) — remove the mark to ratify the decision or delete the entry`,
       );
     }
     for (const field of ["What", "Why", "Change freedom"] as const) {
@@ -325,16 +325,6 @@ const run = async (): Promise<void> => {
         warnings,
         file,
         `legacy intent_schema ${schema}: migrate to ${CURRENT_INTENT_SCHEMA} when its meaning next changes`,
-      );
-    }
-    const candidateCount = decisionEntries(
-      sectionContent(src, "Decisions") ?? "",
-    ).filter((decision) => decision.candidate).length;
-    if (candidateCount > 0) {
-      add(
-        warnings,
-        file,
-        `${candidateCount} unratified candidate DEC(s) await the user's ratification`,
       );
     }
     const ids = validateDecisionDoc(file, src, Number(schema), errors);

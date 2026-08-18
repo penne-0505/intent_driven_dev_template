@@ -1,6 +1,6 @@
 // Deno版 comment allowlist validator: コード内コメントをポインタ/機械向けのみに制限する。
 // 散文コメントは error とし、error 文で行き先 (DEC 化 or 削除) を案内する。
-// 併せて intent ポインタの参照実在 (配達確認) と candidate 参照禁止を検査する。
+// 併せて intent ポインタの参照実在 (配達確認) を検査する。
 
 import { loadScope, makeInScope } from "./scope.ts";
 
@@ -171,14 +171,12 @@ export const extractComments = (src: string): Comment[] => {
 
 type IntentIndex = {
   decisions: Set<string>;
-  candidates: Set<string>;
   invariants: Set<string>;
 };
 
 const buildIntentIndex = async (): Promise<IntentIndex> => {
   const index: IntentIndex = {
     decisions: new Set(),
-    candidates: new Set(),
     invariants: new Set(),
   };
   const walk = async function* (dir: string): AsyncGenerator<string> {
@@ -194,13 +192,8 @@ const buildIntentIndex = async (): Promise<IntentIndex> => {
   };
   for await (const file of walk("_docs/intent")) {
     const src = await Deno.readTextFile(file);
-    for (
-      const match of src.matchAll(
-        /^###\s+(DEC-\d+)(\s+\(candidate\))?:/gm,
-      )
-    ) {
+    for (const match of src.matchAll(/^###\s+(DEC-\d+):/gm)) {
       index.decisions.add(match[1]);
-      if (match[2]) index.candidates.add(match[1]);
     }
     for (const match of src.matchAll(/^- (INV-\d+) \(from DEC-\d+\):/gm)) {
       index.invariants.add(match[1]);
@@ -275,15 +268,6 @@ const run = async (): Promise<void> => {
             line: comment.line,
             message:
               `${pointer.id} is referenced here but not defined in _docs/intent/ (broken pointer)`,
-          });
-        } else if (
-          pointer.kind === "DEC" && index.candidates.has(pointer.id)
-        ) {
-          findings.push({
-            file,
-            line: comment.line,
-            message:
-              `${pointer.id} is still a candidate (unratified): code must not anchor to unratified principles`,
           });
         }
       }
