@@ -66,7 +66,7 @@ title: "QA: Doc probe"
 status: active
 qa_status: verified
 risk: Medium
-qa_schema: 4
+qa_schema: 5
 created_at: ${today}
 updated_at: ${today}
 references:
@@ -100,7 +100,6 @@ related_prs: []
 - **AC Coverage**: AC-001 verified
 - **Intent Delta**: applied: ${DEC_ID}
 - **R2**: 非発動
-- **Transferable Principles**: None: probe exercises existing schemas only
 - **Verdict**: PASS
 `;
 
@@ -109,7 +108,7 @@ title: "QA rounds: ${AREA} maintenance"
 status: active
 qa_status: in-progress
 risk: Low
-qa_schema: 4
+qa_schema: 5
 created_at: ${today}
 updated_at: ${today}
 references: []
@@ -132,7 +131,6 @@ related_prs: []
 - **AC Coverage**: AC-001 covered
 - **Intent Delta**: None: probe round with no decision-bearing branch
 - **R2**: 非発動
-- **Transferable Principles**: None: probe exercises existing schemas only
 - **Verdict**: PASS
 `;
 

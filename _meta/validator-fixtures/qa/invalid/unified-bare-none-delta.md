@@ -3,7 +3,7 @@ title: "QA: Unified fixture with bare None"
 status: active
 qa_status: verified
 risk: Medium
-qa_schema: 4
+qa_schema: 5
 created_at: 2026-08-15
 updated_at: 2026-08-15
 references: []
@@ -36,5 +36,4 @@ fixture_path: _docs/qa/Fixture/bare-none/qa.md
 
 - **AC Coverage**: AC-001 covered
 - **Intent Delta**: None
-- **Transferable Principles**: None
 - **Verdict**: PASS

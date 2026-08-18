@@ -1,28 +1,28 @@
 ---
-title: "QA: R2 suppressed despite DEC creation"
+title: "QA: legacy schema 4"
 status: active
 qa_status: verified
 risk: Medium
-qa_schema: 5
+qa_schema: 4
 created_at: 2026-08-15
 updated_at: 2026-08-15
 references: []
 related_issues: []
 related_prs: []
-fixture_path: _docs/qa/Fixture/r2-mismatch/qa.md
+fixture_path: _docs/qa/Fixture/legacy4/qa.md
 ---
 
-# QA: R2 suppressed despite DEC creation
+# QA: legacy schema 4
 
 ## Acceptance Criteria
 
-- AC-001: R2 must fire when a DEC is created.
+- AC-001: legacy schema 4 unified doc is lazily accepted.
 
 ## Checks
 
 | ID | Source | Requirement / Invariant | Check Type | Command / File | Status |
 | --- | --- | --- | --- | --- | --- |
-| AC-001 | TODO | R2 trigger consistency | validator | scripts/validate-qa.ts | planned |
+| AC-001 | TODO | lazy acceptance | validator | scripts/validate-qa.ts | verified |
 
 ## Rounds
 
@@ -35,6 +35,6 @@ fixture_path: _docs/qa/Fixture/r2-mismatch/qa.md
   ```
 
 - **AC Coverage**: AC-001 covered
-- **Intent Delta**: DEC-900 新設
+- **Intent Delta**: None: fixture only
 - **R2**: 非発動
 - **Verdict**: PASS

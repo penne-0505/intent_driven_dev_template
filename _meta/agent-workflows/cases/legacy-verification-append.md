@@ -5,8 +5,8 @@
 長期運用中の repo で、対象 feature の QA 記録が旧 schema (`qa_schema: 2` の
 verification.md や `qa_schema: 3` の分離文書) として既に存在する。agent は新しい検証
 round を追記しようとしている。旧 schema 文書は「見える未完了」であり、意味を変更する
-編集がそのまま移行 trigger になる。字義解釈で新規則の適用を逃れ、reflection が summary へ
-逃げて session とともに蒸発する failure mode (v1.3.0 実運用初日に観測) を防ぐ。
+編集がそのまま移行 trigger になる。字義解釈で新規則の適用を逃れ、旧 schema のまま
+round を積み続ける failure mode (v1.3.0 実運用初日に観測) を防ぐ。
 
 ## Initial State
 
@@ -17,18 +17,17 @@ round を追記しようとしている。旧 schema 文書は「見える未完
 ## Agent Task
 
 実装変更を行い、新しい検証 round の記録先を決める。round の追記は意味を変更する編集で
-あるため、同じ編集内で統合 `qa.md` (`qa_schema: 4`) へ移行してから round を追記する。
+あるため、同じ編集内で統合 `qa.md` (`qa_schema: 5`) へ移行してから round を追記する。
 
 ## Expected Documents Touched
 
-- `_docs/qa/<Area>/<slug>/qa.md` — 旧文書の内容を統合し (`qa_schema: 4`、Acceptance
+- `_docs/qa/<Area>/<slug>/qa.md` — 旧文書の内容を統合し (`qa_schema: 5`、Acceptance
   Criteria / Checks / Rounds)、新 round を追記する。旧文書からの参照・references を更新する。
 
 ## Expected QA Behavior
 
-- 旧 schema を理由に reflection を summary へ逃がさない。記録先は常に QA 文書である。
-- 新 round は現行の必須フィールド (Intent Delta / R2 / Transferable Principles / Verdict)
-  をすべて持つ。
+- 旧 schema を理由に新フィールドを省略しない。記録先は常に QA 文書である。
+- 新 round は現行の必須フィールド (Intent Delta / R2 / Verdict) をすべて持つ。
 - リンクや typo の修正だけの編集では schema 移行を強制しない (意味を変更する編集のみが
   移行 trigger)。
 
@@ -51,8 +50,8 @@ round を追記しようとしている。旧 schema 文書は「見える未完
 
 ## Failure Modes to Watch
 
-- 「この文書は旧 schema だから新フィールドは不要」と字義解釈し、reflection を summary
-  にだけ書いて蒸発させる。
+- 「この文書は旧 schema だから新フィールドは不要」と字義解釈し、移行せずに旧文書の
+  末尾へ round を積み続ける。
 - schema 移行を怠り、旧文書の末尾に round を積み続ける。
 - 逆振れ: リンク修正だけの編集で不要な schema 移行や過去 round の改変を行う。
 - 移行時に過去 round の内容を書き換え、検証証跡の履歴性を壊す。

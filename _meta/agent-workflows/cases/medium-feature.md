@@ -27,8 +27,8 @@
 ## Expected QA Behavior
 
 - qa.md は実装前に Acceptance Criteria と Checks 表を持つ (`qa_status: planned`)。
-- 実装後に Round を追記する: 実行したコマンド、AC 充足、Intent Delta、R2、
-  Transferable Principles、Verdict。planned の Checks を結果に合わせて書き換えない。
+- 実装後に Round を追記する: 実行したコマンド、AC 充足、Intent Delta、R2、Verdict。
+  planned の Checks を結果に合わせて書き換えない。
 - `Size >= M` のため R2 が発動する: round に `R2: PENDING` を書き、`TODO.md` に
   R2 タスクを積む (同期形が使える環境では completion 前実行でもよい)。
 

@@ -26,7 +26,7 @@ verdict が BLOCKED になる。
 - round の Commands には実行できたものだけを記録し、実行済み evidence と未実行項目を
   分離する。
 - blocker、必要な入力、次アクションが具体的である (BLOCKED では必須)。
-- Intent Delta / R2 / Transferable Principles は BLOCKED でも省略しない。
+- Intent Delta / R2 は BLOCKED でも省略しない。
 - `qa_status` を `blocked` にする。
 
 ## Expected Decision / Invariant Behavior

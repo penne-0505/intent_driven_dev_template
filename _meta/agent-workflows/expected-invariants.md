@@ -9,8 +9,7 @@
   省略できるのは深さであって、存在ではない。
 - Intent Delta は三値 (`DEC-xxx 新設` / `applied: DEC-xxx` / 理由付き `None:`)。
   裸の `None`・無言の省略は不可。
-- QA round は Commands / AC Coverage / Intent Delta / R2 / Transferable Principles /
-  Verdict を持ち、追記専用である。
+- QA round は Commands / AC Coverage / Intent Delta / R2 / Verdict を持ち、追記専用である。
 - DEC 新設 / `Size >= M` / `Risk High` のいずれかで R2 (再構成テスト) が発動する。
   普遍形は `R2: PENDING` + TODO への R2 タスク積み。非該当なら「非発動」と書く。
 - ターンは負債を持って終われるが、タスクは負債を持って閉じられない。verdict の
@@ -21,10 +20,10 @@
 - Plan は `_docs/plan/<Area>/<slug>/plan.md` (`Size >= M` のみ)。
 - QA は `_docs/qa/<Area>/<slug>/qa.md` の単一文書 (計画 + 検証記録)。微小変更の round は
   `_docs/qa/<Area>/maintenance.md` へ集約する。
-- intent は `_docs/intent/<Area>/<slug>/decision.md`。横断原則 (candidate 含む) は
-  `_docs/intent/<Area>/conventions/decision.md`。
+- intent は `_docs/intent/<Area>/<slug>/decision.md`。横断性のある判断も通常の DEC として
+  記録し、横断性は後続からの `applied:` 引用で表現する。
 - `<Area>` は `TODO.md` の `Area` と一致する。`<slug>` は kebab-case。
-- 新規文書の schema marker: intent は `intent_schema: 3`、QA は `qa_schema: 4`。
+- 新規文書の schema marker: intent は `intent_schema: 3`、QA は `qa_schema: 5`。
   旧 schema 文書は「見える未完了」であり、意味を変更する編集の際に移行する。
 - archive 対象は完了タスクの plan のみ (`_docs/archives/plan/`)。intent / qa / guide /
   reference は archive せず、廃止は `status` で表す。draft / survey ディレクトリは存在しない。
@@ -42,7 +41,6 @@
 - コード内コメントは allowlist のみ: `// intent: DEC-xxx — <因果>`、
   `// intent-invariant: INV-xxx`、`// Covers AC-xxx`、shebang、pragma、license header。
 - 散文コメント・TODO コメントは禁止。書きたい散文は DEC に書く why か、捨ててよい how。
-- candidate 状態の DEC を参照するコードポインタは error になる。
 
 ## TODO.md
 
@@ -54,12 +52,6 @@
 - Bug 修正は regression test か no-test rationale を、Refactor は behavior-preservation
   checks を、agent workflow 変更は misbehavior checks を要求する。
 - FAIL / BLOCKED の verdict を持つタスクを TODO から消さない。
-
-## 昇格 (transferable principle)
-
-- 作業終了時に candidate または理由付き `None:` を QA round に必ず記録する。
-- candidate は conventions へ candidate マーク付き DEC として追記できるが、マークを外す
-  規範化操作は user のみが行う。candidate は最終報告で定型提示 (5 項目) する。
 
 ## Safety
 
@@ -75,6 +67,6 @@
 
 - ローカル検証の正典は `./scripts/check-docs.sh` (validator の個別列挙はしない。列挙は
   wrapper との drift 源になるため)。
-- validator は presence と機械判定可能な整合のみを検査する。candidate の質、`None:` 理由の
-  妥当性、R2 の中身などの意味判定を validator に追加しない (質は R1 / R2 / user review の領分)。
+- validator は presence と機械判定可能な整合のみを検査する。`None:` 理由の妥当性、R2 の
+  中身などの意味判定を validator に追加しない (質は R1 / R2 / user review の領分)。
 - validator fixtures は valid / invalid の両例を持つ。

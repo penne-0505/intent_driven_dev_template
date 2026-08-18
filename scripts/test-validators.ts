@@ -35,6 +35,7 @@ const INTENT_VALID = [
 const INTENT_INVALID = [
   "_meta/validator-fixtures/intent/invalid/missing-why.md",
   "_meta/validator-fixtures/intent/invalid/orphan-invariant.md",
+  "_meta/validator-fixtures/intent/invalid/candidate-mark.md",
 ] as const;
 const QA_VALID = [
   "_meta/validator-fixtures/qa/valid",
@@ -46,8 +47,6 @@ const QA_INVALID = [
   "_meta/validator-fixtures/qa/invalid/verification-in-progress-status.md",
   "_meta/validator-fixtures/qa/invalid/verification-missing-test-plan-reference.md",
   "_meta/validator-fixtures/qa/invalid/qa-archive-path.md",
-  "_meta/validator-fixtures/qa/invalid/v3-missing-transferable-principles.md",
-  "_meta/validator-fixtures/qa/invalid/v3-bare-none-transferable-principles.md",
   "_meta/validator-fixtures/qa/invalid/unified-bare-none-delta.md",
   "_meta/validator-fixtures/qa/invalid/unified-r2-mismatch.md",
   "_meta/validator-fixtures/qa/invalid/maintenance-dec-creation.md",
