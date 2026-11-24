@@ -1,3 +1,7 @@
+# This project is now deprecated. If you're looking for a successor project, here it is: https://github.com/penne-0505/pi-web-idd
+
+---
+
 # Intent Driven Development Template
 
 > This README is available in English and Japanese. English speakers, please scroll down.
